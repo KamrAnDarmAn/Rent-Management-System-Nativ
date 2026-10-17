@@ -612,7 +612,7 @@ export function DesignSystemScreen() {
           <Button
             title="Edit Shop"
             variant="outline"
-            onPress={() => go("tenancy-lifecycle")}
+            onPress={() => go("edit-shop")}
           />
           <Button
             title="Delete"

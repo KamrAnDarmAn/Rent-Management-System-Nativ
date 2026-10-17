@@ -1,8 +1,24 @@
 import { ScreenId, Shop } from "./types";
 
+export function normalizeShopNumber(value: string): string {
+  const number = value
+    .trim()
+    .replace(/^shop(?=\s|#|\d)\s*#?\s*/i, "")
+    .replace(/^#\s*/, "")
+    .trim();
+  return /^\d+$/.test(number)
+    ? number.replace(/^0+(?=\d)/, "").padStart(2, "0")
+    : number;
+}
+
 export const initialShops: Shop[] = [
   {
     id: 1,
+    number: "01",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes:
+      "Reliable tenant. Runs a general store. Requested construction credit for interior work. Usually pays on time. Follow up required.",
     name: "Al Noor General Store",
     keeper: "Ahmad Khan",
     phone: "0701 234567",
@@ -15,6 +31,10 @@ export const initialShops: Shop[] = [
   },
   {
     id: 2,
+    number: "02",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes: "",
     name: "Bilal Electronics",
     keeper: "Bilal Ahmed",
     phone: "0702 987654",
@@ -27,6 +47,10 @@ export const initialShops: Shop[] = [
   },
   {
     id: 3,
+    number: "03",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes: "",
     name: "Zahid Mobile",
     keeper: "Zahid Hussain",
     phone: "0703 111233",
@@ -39,6 +63,10 @@ export const initialShops: Shop[] = [
   },
   {
     id: 4,
+    number: "04",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes: "",
     name: "Karim Tailor",
     keeper: "Karim Ullah",
     phone: "0700 557788",
@@ -51,6 +79,10 @@ export const initialShops: Shop[] = [
   },
   {
     id: 5,
+    number: "05",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes: "",
     name: "Friends Collection",
     keeper: "Sara Khan",
     phone: "0704 678901",
@@ -63,6 +95,10 @@ export const initialShops: Shop[] = [
   },
   {
     id: 6,
+    number: "06",
+    address: "Main Boulevard, Kabul",
+    startDate: "2024-01-01",
+    notes: "",
     name: "Friends Food Point",
     keeper: "Usman Ali",
     phone: "0705 678901",

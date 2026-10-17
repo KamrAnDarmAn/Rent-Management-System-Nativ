@@ -123,7 +123,9 @@ Prior interview references; revalidate before installing dependencies:
 - Support full/partial payments and repeated collection within a month.
 - Suggest oldest unpaid charges first across the shopkeeper's shops. Show the proposed allocations and allow editing before saving.
 - A payment's transaction date determines when money was received; allocation determines which shop/month's rent is settled. These are separate facts.
-- Excess cash becomes an unused cash advance, separate from construction credit. Later application requires explicit confirmation.
+- Excess cash becomes an unused cash advance, separate from construction credit. Later application requires explicit confirmation, except for an explicitly configured prepaid rental agreement (see below).
+- **Later user requirement — prepaid rental agreements:** occupied shops can be Monthly or Prepaid. Add/Edit Shop must accept the advance amount and coverage start date. Prepaid shops have their own tag/filter and show total received, rent applied to date, remaining advance, full/partial months covered, and the date cash payments resume. This selected agreement automatically applies advance rent each month; construction credit and ordinary unallocated cash advances remain manual.
+- **Current preview assumption:** the first installment is applied on the advance start date, then on monthly anniversaries (clamping short months). A final remainder partly settles its installment. Production must reconcile this schedule with Gregorian monthly charges, proration, effective-dated rate history and tenancy termination; use auditable, idempotent allocations, and never count monthly application as another receipt. Editing preview agreement terms currently recalculates its fixed-rate projection rather than posting historical corrections.
 - Apply construction credit only when the owner explicitly chooses an amount; never automatically consume it.
 - Cap each allocation at the charge's unpaid amount and the source's available amount. Never permit negative available credit or over-settled rent.
 - Allocation of already-received cash to later rent is not another receipt of cash.

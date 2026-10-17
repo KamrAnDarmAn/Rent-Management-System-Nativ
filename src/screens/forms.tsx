@@ -25,10 +25,13 @@ import {
   useGo,
   useUI,
 } from "../ui";
-import { shopImages } from "../data";
+import { shopImages, normalizeShopNumber } from "../data";
 import { usePreviewLedger } from "../store";
 import { Shop } from "../types";
 import { Chips, MonthPicker } from "./main";
+import { prepaidSummary, rentPosition, validDate } from "../rent";
+import { useToday } from "../useToday";
+import { PrepaidSummary, CollectPrepaidRentScreen } from "./prepaid";
 
 export function useShop(id = 1) {
   return usePreviewLedger(
@@ -52,10 +55,7 @@ export function ShopIdentity({
           style={{ width: 52, height: 49, borderRadius: 7 }}
         />
         <View style={{ flex: 1 }}>
-          <T
-            weight="bold"
-            size={14}
-          >{`Shop #${String(shop.id).padStart(2, "0")}`}</T>
+          <T weight="bold" size={14}>{`Shop #${shop.number}`}</T>
           <T size={11} color={c.sub}>
             {shop.keeper}
           </T>
@@ -118,18 +118,34 @@ export function SetupPropertyScreen() {
   const [dueDay, setDueDay] = useState("5");
   const save = () => {
     const amount = validAmount(rent);
-    const id = Number(shopNumber.replace(/\D/g, ""));
-    if (!property.trim() || !amount || !id || !keeper.trim() || !phone.trim())
+    const number = normalizeShopNumber(shopNumber);
+    const id = Math.max(0, ...ledger.shops.map((s) => s.id)) + 1;
+    if (
+      !property.trim() ||
+      !amount ||
+      !number ||
+      !keeper.trim() ||
+      !phone.trim()
+    )
       return notify(
         "Enter a property, shop number, positive rent, and shopkeeper details.",
       );
-    if (ledger.shops.some((s) => s.id === id))
+    if (
+      ledger.shops.some(
+        (s) =>
+          normalizeShopNumber(s.number).toLowerCase() === number.toLowerCase(),
+      )
+    )
       return notify(
         "That shop number already exists in the preview. Choose another number.",
       );
     ledger.setPropertyName(property.trim());
     ledger.addShop({
       id,
+      number,
+      address: "",
+      startDate: date,
+      notes: "",
       name: shopNumber,
       keeper,
       phone,
@@ -267,107 +283,171 @@ export function SetupPropertyScreen() {
   );
 }
 
-export function AddShopScreen({ setup = false }: { setup?: boolean }) {
+export function AddShopScreen({ shopId }: { shopId?: number }) {
   const { c, notify } = useUI();
   const go = useGo();
+  const navigation = useNavigation();
   const add = usePreviewLedger((s) => s.addShop);
+  const update = usePreviewLedger((s) => s.updateShop);
   const shops = usePreviewLedger((s) => s.shops);
+  const shop = shops.find((s) => s.id === shopId);
+  const editing = shopId !== undefined;
+  const today = useToday();
+  const [rentalType, setRentalType] = useState<"monthly" | "prepaid">(
+    shop?.rentalType ?? "monthly",
+  );
   const [fields, setFields] = useState({
-    number: "",
-    name: "",
-    keeper: "",
-    phone: "",
-    address: "",
-    rent: "",
-    date: "2026-03-15",
-    credit: "",
-    notes: "",
-    property: "Al Hafez Plaza",
+    number: shop?.number ?? "",
+    name: shop?.name ?? "",
+    keeper: shop?.keeper ?? "",
+    phone: shop?.phone ?? "",
+    address: shop?.address ?? "",
+    rent: shop ? String(shop.rent) : "",
+    date: shop?.startDate ?? "2026-03-15",
+    credit: shop ? String(shop.credit) : "",
+    notes: shop?.notes ?? "",
+    advance: shop?.prepaidRent ? String(shop.prepaidRent.amount) : "",
+    advanceDate: shop?.prepaidRent?.startDate ?? today,
   });
-  const [occupied, setOccupied] = useState("Occupied");
-  const [attempted, setAttempted] = useState(false);
+  const [occupied, setOccupied] = useState(
+    shop?.occupied === false ? "Vacant" : "Occupied",
+  );
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof typeof fields, string>>
+  >({});
   const field = (key: keyof typeof fields) => ({
     value: fields[key],
-    onChangeText: (v: string) => setFields((prev) => ({ ...prev, [key]: v })),
+    error: errors[key],
+    onChangeText: (value: string) => {
+      setFields((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => ({ ...prev, [key]: undefined }));
+    },
   });
   const save = () => {
-    setAttempted(true);
+    const number = normalizeShopNumber(fields.number);
     const rent = validAmount(fields.rent);
-    const id = Number(fields.number.replace(/\D/g, ""));
-    if (
-      !fields.name.trim() ||
-      !fields.keeper.trim() ||
-      !fields.phone.trim() ||
-      !rent ||
-      !id
+    const credit = fields.credit.trim()
+      ? Number(fields.credit.replace(/,/g, ""))
+      : 0;
+    const date = fields.date.trim();
+    const advance = validAmount(fields.advance);
+    const advanceDate = fields.advanceDate.trim();
+    const nextErrors: Partial<Record<keyof typeof fields, string>> = {};
+    if (!number) nextErrors.number = "Shop number is required";
+    else if (
+      shops.some(
+        (s) =>
+          s.id !== shopId &&
+          normalizeShopNumber(s.number).toLowerCase() === number.toLowerCase(),
+      )
     )
-      return notify(
-        "Enter a shop number, name, shopkeeper, phone, and a positive whole-AFN rent.",
-      );
-    if (shops.some((s) => s.id === id))
-      return notify("That shop number already exists. Choose a unique number.");
-    add({
-      id,
+      nextErrors.number =
+        "That shop number already exists. Choose a unique number.";
+    if (!fields.name.trim()) nextErrors.name = "Shop name is required";
+    if (!fields.keeper.trim())
+      nextErrors.keeper = "Shopkeeper name is required";
+    if (!fields.phone.trim()) nextErrors.phone = "Phone number is required";
+    if (!rent) nextErrors.rent = "Enter a positive whole-AFN rent.";
+    if (!Number.isSafeInteger(credit) || credit < 0)
+      nextErrors.credit = "Credit must be a nonnegative whole-AFN amount.";
+    if (!validDate(date))
+      nextErrors.date = "Use a valid YYYY-MM-DD start date.";
+    if (rentalType === "prepaid" && occupied === "Occupied") {
+      if (!advance) nextErrors.advance = "Enter a positive whole-AFN advance.";
+      if (!validDate(advanceDate))
+        nextErrors.advanceDate = "Use a valid YYYY-MM-DD advance start date.";
+      else if (validDate(date) && advanceDate < date)
+        nextErrors.advanceDate =
+          "Advance cannot start before the tenancy start date.";
+      if (
+        advance &&
+        rent &&
+        validDate(advanceDate) &&
+        !prepaidSummary(
+          { amount: advance, monthlyRent: rent, startDate: advanceDate },
+          today,
+        )
+      )
+        nextErrors.advance = "Advance coverage must end before year 10000.";
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length || !rent)
+      return notify(Object.values(nextErrors)[0] ?? "Check the shop details.");
+    const values = {
+      number,
       name: fields.name.trim(),
       keeper: fields.keeper.trim(),
-      phone: fields.phone,
+      phone: fields.phone.trim(),
+      address: fields.address.trim(),
       rent,
-      paid: 0,
-      credit: Math.max(0, Number(fields.credit) || 0),
+      startDate: date,
+      credit,
+      notes: fields.notes.trim(),
       occupied: occupied === "Occupied",
-      status: "Unpaid",
-      image: (id - 1) % 6,
-    });
-    notify("Shop added to the preview ledger.");
-    go("shops");
+      rentalType,
+      prepaidRent:
+        rentalType === "prepaid" && occupied === "Occupied" && advance
+          ? { amount: advance, startDate: advanceDate, monthlyRent: rent }
+          : shop?.prepaidRent,
+    };
+    if (editing) {
+      if (!shop) return notify("This shop is no longer available.");
+      const status: Shop["status"] =
+        shop.paid >= rent
+          ? shop.status === "Settled by Credit"
+            ? "Settled by Credit"
+            : "Paid"
+          : shop.status === "Overdue"
+            ? "Overdue"
+            : shop.paid > 0
+              ? "Partial"
+              : "Unpaid";
+      update(shop.id, { ...values, status });
+      notify("Shop updated in the preview ledger.");
+      if (navigation.canGoBack()) navigation.goBack();
+      else go("shop-details", shop.id);
+    } else {
+      const id = Math.max(0, ...shops.map((s) => s.id)) + 1;
+      add({
+        ...values,
+        id,
+        paid: 0,
+        status: "Unpaid",
+        image: (id - 1) % shopImages.length,
+      });
+      notify("Shop added to the preview ledger.");
+      go("shops");
+    }
   };
+  if (editing && !shop)
+    return (
+      <Page title="Edit Shop">
+        <Card style={{ gap: 12 }}>
+          <T size={18} weight="bold">
+            Shop not found
+          </T>
+          <T>This shop is no longer available.</T>
+          <Button title="Back to Shops" onPress={() => go("shops")} />
+        </Card>
+      </Page>
+    );
   return (
     <Page
-      title={setup ? "Shop Rent Manager" : "Add Shop"}
+      title={editing ? "Edit Shop" : "Add Shop"}
       subtitle={
-        setup ? "Initial Property Setup" : "Enter shop and shopkeeper details"
+        editing
+          ? "Update shop and shopkeeper details"
+          : "Enter shop and shopkeeper details"
       }
       help
       footer={
         <Button
-          title={setup ? "Create Property & Add Shop" : "Save Shop"}
+          title={editing ? "Update Shop" : "Save Shop"}
           icon="CircleCheck"
           onPress={save}
         />
       }
     >
-      {setup && (
-        <>
-          <Row style={{ justifyContent: "space-between", paddingVertical: 7 }}>
-            {["Account", "Preferences", "Property Setup", "Complete"].map(
-              (s, i) => (
-                <View key={s} style={{ alignItems: "center", gap: 5 }}>
-                  <IconTile
-                    name={i < 2 ? "Check" : i === 2 ? "House" : "Circle"}
-                    tone={i < 3 ? "teal" : "muted"}
-                    size={25}
-                  />
-                  <T size={8} color={i === 2 ? c.primary : c.sub}>
-                    {s}
-                  </T>
-                </View>
-              ),
-            )}
-          </Row>
-          <T weight="bold" size={19}>
-            Set Up Your First Property
-          </T>
-          <T size={11} color={c.sub}>
-            Add your building or plaza and create your first shop with a
-            shopkeeper. You can add more shops anytime.
-          </T>
-          <Field
-            label="Property or Building Name"
-            {...field("property")}
-            icon="Building2"
-          />
-        </>
-      )}
       <FormSection
         title="Shop Details"
         subtitle="Basic information about the shop"
@@ -381,11 +461,6 @@ export function AddShopScreen({ setup = false }: { setup?: boolean }) {
             required
             icon="Store"
             helper="Unique identifier for this shop"
-            error={
-              attempted && !fields.number
-                ? "Shop number is required"
-                : undefined
-            }
           />
           <Field
             label="Shop Name"
@@ -467,6 +542,67 @@ export function AddShopScreen({ setup = false }: { setup?: boolean }) {
             />
           ))}
         </Row>
+        {occupied === "Occupied" && (
+          <>
+            <T size={11} weight="medium">
+              Rental Payment Type
+            </T>
+            <Row>
+              {(["monthly", "prepaid"] as const).map((type) => (
+                <Button
+                  key={type}
+                  title={type === "monthly" ? "Monthly" : "Prepaid"}
+                  icon={type === "monthly" ? "CalendarDays" : "Wallet"}
+                  compact
+                  style={{ flex: 1 }}
+                  variant={rentalType === type ? "secondary" : "outline"}
+                  onPress={() => setRentalType(type)}
+                />
+              ))}
+            </Row>
+            <T size={10} color={c.sub}>
+              {rentalType === "monthly"
+                ? "The shopkeeper pays rent every month."
+                : "An advance payment covers rent automatically each month."}
+            </T>
+            {rentalType === "prepaid" && (
+              <>
+                <Field
+                  label="Advance Rent Received (AFN)"
+                  {...field("advance")}
+                  numeric
+                  required
+                  placeholder="e.g. 4,000"
+                  icon="Wallet"
+                  helper="Total advance for this agreement, not the remaining balance."
+                />
+                <Field
+                  label="Advance Start Date"
+                  {...field("advanceDate")}
+                  required
+                  icon="CalendarDays"
+                  helper="First rent payment covered by this advance (YYYY-MM-DD)."
+                />
+                <T size={10} color={c.sub}>
+                  Changing the amount, start date or rent recalculates this
+                  agreement.
+                </T>
+                {validAmount(fields.advance) &&
+                validAmount(fields.rent) &&
+                validDate(fields.advanceDate.trim()) ? (
+                  <PrepaidSummary
+                    plan={{
+                      amount: validAmount(fields.advance)!,
+                      monthlyRent: validAmount(fields.rent)!,
+                      startDate: fields.advanceDate.trim(),
+                    }}
+                    today={today}
+                  />
+                ) : null}
+              </>
+            )}
+          </>
+        )}
       </FormSection>
       <FormSection
         title="Financial Details"
@@ -475,12 +611,20 @@ export function AddShopScreen({ setup = false }: { setup?: boolean }) {
         tone="purple"
       >
         <Field
-          label="Initial Construction Credit (AFN)"
+          label={
+            editing
+              ? "Available Construction Credit (AFN)"
+              : "Initial Construction Credit (AFN)"
+          }
           {...field("credit")}
           placeholder="e.g. 50,000"
           numeric
           icon="Hammer"
-          helper="Construction paid by the shopkeeper creates credit against rent."
+          helper={
+            editing
+              ? "Update the available construction credit for this shop."
+              : "Construction paid by the shopkeeper creates credit against rent."
+          }
         />
       </FormSection>
       <FormSection
@@ -527,6 +671,8 @@ export function CollectRentScreen({ shopId = 2 }: { shopId?: number }) {
     );
     nav.goBack();
   };
+  if (shop.occupied && shop.rentalType === "prepaid" && shop.prepaidRent)
+    return <CollectPrepaidRentScreen shop={shop} />;
   return (
     <Page
       title="Collect Rent"
@@ -1004,7 +1150,7 @@ export function GoodsTakenScreen({ shopId = 1 }: { shopId?: number }) {
         <Section title="Transaction Summary">
           <Row>
             <View style={{ flex: 1, gap: 6 }}>
-              <T size={10}>{`Shop #${shop.id} · ${shop.keeper}`}</T>
+              <T size={10}>{`Shop #${shop.number} · ${shop.keeper}`}</T>
               <T size={10} color={c.sub}>
                 {item}
               </T>
@@ -1041,10 +1187,12 @@ export function ApplyCreditScreen({ shopId = 2 }: { shopId?: number }) {
   const [month, setMonth] = useState("April 2026");
   const [selected, setSelected] = useState("April 2026");
   const available = shop.credit;
+  const today = useToday();
+  const position = rentPosition(shop, today);
   const nav = useNavigation();
   const save = () => {
     const n = validAmount(amount);
-    if (!n || n > available || n > Math.max(0, shop.rent - shop.paid))
+    if (!n || n > available || n > position.due)
       return notify(
         "Choose an amount within available credit and unpaid rent.",
       );
@@ -1075,7 +1223,10 @@ export function ApplyCreditScreen({ shopId = 2 }: { shopId?: number }) {
         </Row>
       </Card>
       <Section title="Outstanding Rent by Month" action="View All">
-        {["March 2026", "April 2026", "May 2026", "June 2026"].map((m) => (
+        {(position.prepaid
+          ? [position.prepaid.currentDueDate ?? today]
+          : ["March 2026", "April 2026", "May 2026", "June 2026"]
+        ).map((m) => (
           <Pressable
             key={m}
             onPress={() => {
@@ -1116,7 +1267,7 @@ export function ApplyCreditScreen({ shopId = 2 }: { shopId?: number }) {
           onChangeText={setAmount}
           numeric
           suffix="AFN"
-          helper={`Maximum available: ${money(Math.min(available, Math.max(0, shop.rent - shop.paid)))}`}
+          helper={`Maximum available: ${money(Math.min(available, position.due))}`}
         />
       </Card>
       <Info

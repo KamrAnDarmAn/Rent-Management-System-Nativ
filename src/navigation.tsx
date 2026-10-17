@@ -170,6 +170,8 @@ function ScreenContent({ id, shopId }: { id: ScreenId; shopId?: number }) {
       return <SettingsScreen />;
     case "add-shop":
       return <AddShopScreen />;
+    case "edit-shop":
+      return <AddShopScreen shopId={shopId ?? 1} />;
     case "setup-property":
       return <SetupPropertyScreen />;
     case "collect-rent":
@@ -287,6 +289,7 @@ export function AppNavigator({ initial }: { initial?: ScreenId }) {
       </Stack.Screen>
       <Stack.Screen
         name="Screen"
+        getId={({ params }) => `${params.id}:${params.shopId ?? "default"}`}
         component={ScreenRoute}
         initialParams={{ id: initial ?? "screen-gallery" }}
       />

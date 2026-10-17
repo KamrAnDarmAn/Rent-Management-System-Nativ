@@ -5,6 +5,7 @@ export type ScreenId =
   | "get-started"
   | "setup-property"
   | "add-shop"
+  | "edit-shop"
   | "shop-details"
   | "shopkeeper"
   | "collect-rent"
@@ -36,13 +37,20 @@ export type ShopStatus =
   "Paid" | "Partial" | "Unpaid" | "Overdue" | "Settled by Credit";
 export type Shop = {
   id: number;
+  number: string;
   name: string;
   keeper: string;
   phone: string;
+  address: string;
+  startDate: string;
+  notes: string;
   rent: number;
   paid: number;
   credit: number;
   status: ShopStatus;
   occupied: boolean;
+  rentalType?: "monthly" | "prepaid";
+  prepaidRent?: { amount: number; startDate: string; monthlyRent: number };
+  prepaidPayments?: Record<string, number>;
   image: number;
 };

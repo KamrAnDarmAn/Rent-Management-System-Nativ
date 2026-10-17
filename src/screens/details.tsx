@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { View, Image, Pressable, Modal } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParams } from "../types";
 import {
   Badge,
   BarChart,
@@ -27,6 +30,9 @@ import {
   useUI,
 } from "../ui";
 import { shopImages } from "../data";
+import { rentalTag, rentPosition } from "../rent";
+import { useToday } from "../useToday";
+import { PrepaidSummary } from "./prepaid";
 import { usePreviewLedger } from "../store";
 import { Chips, TransactionRow } from "./main";
 import { FormSection, ShopIdentity, SummaryLine, useShop } from "./forms";
@@ -34,50 +40,40 @@ import { FormSection, ShopIdentity, SummaryLine, useShop } from "./forms";
 export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
   const { c, notify } = useUI();
   const go = useGo();
-  const shop = useShop(shopId);
-  const [notes, setNotes] = useState(
-    "Reliable tenant. Runs a general store. Requested construction credit for interior work. Usually pays on time. Follow up required.",
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParams>>();
+  const shop = usePreviewLedger((state) =>
+    state.shops.find((s) => s.id === shopId),
   );
+  const deleteShop = usePreviewLedger((state) => state.deleteShop);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const updateShop = usePreviewLedger((state) => state.updateShop);
   const [editNotes, setEditNotes] = useState(false);
+  const today = useToday();
+  const returnToShops = () =>
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Tabs", params: { screen: "shops" } }],
+    });
+  if (!shop)
+    return (
+      <Page title="Shop Details">
+        <Card style={{ gap: 12 }}>
+          <T size={18} weight="bold">
+            Shop not found
+          </T>
+          <T color={c.sub}>This shop is no longer available.</T>
+          <Button title="Back to Shops" onPress={returnToShops} />
+        </Card>
+      </Page>
+    );
+  const position = rentPosition(shop, today);
   const footer = (
-    <Row gap={5}>
-      <Button
-        title="Edit Shop"
-        icon="Pencil"
-        variant="secondary"
-        onPress={() => go("tenancy-lifecycle", shop.id)}
-        style={{ flex: 1 }}
-        compact
-      />
-      <Button
-        title="Change Rent"
-        icon="TrendingUp"
-        variant="secondary"
-        onPress={() => go("tenancy-lifecycle", shop.id)}
-        style={{ flex: 1 }}
-        compact
-      />
-      <Button
-        title="End Tenancy"
-        icon="Pause"
-        variant="outline"
-        onPress={() => go("tenancy-lifecycle", shop.id)}
-        style={{ flex: 1 }}
-        compact
-      />
-      <Button
-        title="Archive"
-        icon="Archive"
-        variant="outline"
-        onPress={() =>
-          notify(
-            "Archive will preserve financial history. This action is not connected in the visual preview.",
-          )
-        }
-        style={{ flex: 1 }}
-        compact
-      />
-    </Row>
+    <Button
+      title="Collect Rent"
+      icon="Banknote"
+      onPress={() => go("collect-rent", shop.id)}
+    />
   );
   return (
     <Page
@@ -91,6 +87,71 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
       }
       footer={footer}
     >
+      <Modal
+        transparent
+        visible={confirmDelete}
+        animationType="fade"
+        onRequestClose={() => setConfirmDelete(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "#0a1b3570",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            role="dialog"
+            accessibilityViewIsModal
+            accessibilityLabel="Delete this shop?"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              padding: 20,
+              borderRadius: 18,
+              backgroundColor: c.surface,
+              gap: 14,
+            }}
+          >
+            <Row>
+              <IconTile name="Trash2" tone="red" size={42} />
+              <T size={20} weight="bold">
+                Delete this shop?
+              </T>
+            </Row>
+            <T
+              size={14}
+              weight="semibold"
+            >{`Shop #${shop.number} · ${shop.name}`}</T>
+            <T color={c.sub}>
+              This removes the shop from the current preview. Other shops will
+              be kept.
+            </T>
+            <Row>
+              <Button
+                title="Cancel"
+                variant="outline"
+                onPress={() => setConfirmDelete(false)}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Delete Shop"
+                icon="Trash2"
+                variant="danger"
+                onPress={() => {
+                  setConfirmDelete(false);
+                  returnToShops();
+                  deleteShop(shop.id);
+                  notify("Shop deleted from the preview ledger.");
+                }}
+                style={{ flex: 1 }}
+              />
+            </Row>
+          </View>
+        </View>
+      </Modal>
       <Card>
         <Row>
           <Image
@@ -99,8 +160,18 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
           />
           <View style={{ flex: 1, gap: 5 }}>
             <Row style={{ justifyContent: "space-between" }}>
-              <T size={20} weight="bold">{`Shop #0${shop.id}`}</T>
-              <Badge label={shop.occupied ? "Occupied" : "Vacant"} small />
+              <T size={20} weight="bold">{`Shop #${shop.number}`}</T>
+              <Badge
+                label={rentalTag(shop)}
+                tone={
+                  shop.occupied
+                    ? shop.rentalType === "prepaid"
+                      ? "blue"
+                      : "green"
+                    : "muted"
+                }
+                small
+              />
             </Row>
             <T size={13} color={c.sub}>
               Al Hafez Plaza
@@ -108,7 +179,7 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
             <Row gap={4}>
               <Icon name="MapPin" size={13} color={c.sub} />
               <T size={10} color={c.sub}>
-                Main Boulevard, Kabul
+                {shop.address || "—"}
               </T>
             </Row>
           </View>
@@ -139,11 +210,14 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
               {money(shop.rent)}
             </T>
             <T size={9} color={c.sub}>
-              Since 01 Jan 2024
+              {`Since ${shop.startDate}`}
             </T>
           </View>
         </Row>
       </Card>
+      {position.prepaid && shop.prepaidRent && (
+        <PrepaidSummary plan={shop.prepaidRent} today={today} />
+      )}
       <Row gap={6}>
         <Pressable
           onPress={() => go("rent-history", shop.id)}
@@ -151,7 +225,7 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
         >
           <Metric
             label="Outstanding Rent"
-            value={money(Math.max(0, shop.rent - shop.paid))}
+            value={money(position.due)}
             tone="red"
             icon="FileWarning"
             detail="View rent history"
@@ -221,16 +295,20 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
           <Section
             title="Shop Information"
             action="Edit"
-            onPress={() => go("tenancy-lifecycle", shop.id)}
+            onPress={() => go("edit-shop", shop.id)}
           >
             {[
-              ["Shop Number", `Shop #0${shop.id}`],
+              ["Shop Number", `Shop #${shop.number}`],
               ["Shop Name", shop.name],
               ["Category", "Retail Shop"],
               ["Size", "15 × 20 ft (300 sq ft)"],
               ["Floor", "Ground Floor"],
-              ["Status", shop.occupied ? "Occupied" : "Vacant"],
-              ["Start Date", "01 Jan 2024"],
+              ["Status", rentalTag(shop)],
+              [
+                "Rental Payment Type",
+                shop.rentalType === "prepaid" ? "Prepaid" : "Monthly",
+              ],
+              ["Start Date", shop.startDate],
               ["Monthly Rent", money(shop.rent)],
             ].map(([k, v]) => (
               <View key={k} style={{ gap: 2 }}>
@@ -254,13 +332,15 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
               {editNotes ? (
                 <Field
                   label="Notes"
-                  value={notes}
-                  onChangeText={setNotes}
+                  value={shop.notes}
+                  onChangeText={(value) =>
+                    updateShop(shop.id, { notes: value })
+                  }
                   multiline
                 />
               ) : (
                 <T size={10} color={c.sub}>
-                  {notes}
+                  {shop.notes || "—"}
                 </T>
               )}
             </Section>
@@ -268,9 +348,15 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
           <Card style={{ padding: 9 }}>
             <Section title="Important Dates">
               {[
-                ["Tenancy Start", "01 Jan 2024"],
-                ["Next Rent Due", "01 Apr 2026"],
-                ["Contract Type", "Monthly"],
+                ["Tenancy Start", shop.startDate],
+                [
+                  "Next Rent Due",
+                  position.prepaid?.firstCashDueDate ?? "01 Apr 2026",
+                ],
+                [
+                  "Contract Type",
+                  shop.rentalType === "prepaid" ? "Prepaid" : "Monthly",
+                ],
               ].map(([k, v]) => (
                 <View key={k}>
                   <T size={9} color={c.sub}>
@@ -323,10 +409,49 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
         </Section>
       </Card>
       <Button
-        title="Collect Rent"
-        icon="Banknote"
-        onPress={() => go("collect-rent", shop.id)}
+        title="Delete Shop"
+        icon="Trash2"
+        variant="danger"
+        onPress={() => setConfirmDelete(true)}
       />
+      <Row gap={5}>
+        <Button
+          title="Edit Shop"
+          icon="Pencil"
+          variant="secondary"
+          onPress={() => go("edit-shop", shop.id)}
+          style={{ flex: 1 }}
+          compact
+        />
+        <Button
+          title="Change Rent"
+          icon="TrendingUp"
+          variant="secondary"
+          onPress={() => go("tenancy-lifecycle", shop.id)}
+          style={{ flex: 1 }}
+          compact
+        />
+        <Button
+          title="End Tenancy"
+          icon="Pause"
+          variant="outline"
+          onPress={() => go("tenancy-lifecycle", shop.id)}
+          style={{ flex: 1 }}
+          compact
+        />
+        <Button
+          title="Archive"
+          icon="Archive"
+          variant="outline"
+          onPress={() =>
+            notify(
+              "Archive will preserve financial history. This action is not connected in the visual preview.",
+            )
+          }
+          style={{ flex: 1 }}
+          compact
+        />
+      </Row>
     </Page>
   );
 }
@@ -403,7 +528,7 @@ export function ShopkeeperScreen({ shopId = 1 }: { shopId?: number }) {
           title="Edit"
           icon="Pencil"
           compact
-          onPress={() => go("tenancy-lifecycle", shop.id)}
+          onPress={() => go("edit-shop", shop.id)}
           variant="secondary"
           style={{ flex: 1 }}
         />
@@ -690,7 +815,10 @@ export function RentHistoryScreen({ shopId = 1 }: { shopId?: number }) {
     "Sep 2025",
   ];
   return (
-    <Page title="Rent History" subtitle={`Shop 0${shop.id} · ${shop.keeper}`}>
+    <Page
+      title="Rent History"
+      subtitle={`Shop ${shop.number} · ${shop.keeper}`}
+    >
       <ShopIdentity shop={shop} />
       <Row>
         <Metric

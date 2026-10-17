@@ -34,6 +34,8 @@ import {
 import { usePreferences, usePreviewLedger } from "../store";
 import { screenReferences, shopImages } from "../data";
 import { ScreenId, Shop, ShopStatus } from "../types";
+import { rentalTag, rentPosition } from "../rent";
+import { useToday } from "../useToday";
 
 export const statusTone = (status: ShopStatus) =>
   status === "Paid"
@@ -187,14 +189,19 @@ export function MonthPicker({
 export function CollectScreen() {
   const { c, notify, language } = useUI();
   const go = useGo();
-  const shops = usePreviewLedger((s) => s.shops);
+  const today = useToday();
+  const records = usePreviewLedger((s) => s.shops);
+  const shops = records.map((shop) => ({
+    ...shop,
+    ...rentPosition(shop, today),
+  }));
   const propertyName = usePreviewLedger((s) => s.propertyName);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All (20)");
   const [month, setMonth] = useState(2);
   const filtered = shops.filter(
     (s) =>
-      `${s.name} ${s.keeper} ${s.id}`
+      `${s.name} ${s.keeper} ${s.number} ${s.phone}`
         .toLowerCase()
         .includes(search.toLowerCase()) &&
       (filter.startsWith("All") || s.status === filter.split(" (")[0]),
@@ -295,7 +302,7 @@ export function CollectScreen() {
           </View>
         </Row>
       </Card>
-      <Row gap={7}>
+      <Row gap={7} style={{ flexWrap: "wrap" }}>
         {(
           [
             { label: "Paid", count: 12, tone: "green" },
@@ -307,7 +314,7 @@ export function CollectScreen() {
           <Pressable
             key={s.label}
             onPress={() => setFilter(`${s.label} (${s.count})`)}
-            style={{ flex: 1 }}
+            style={{ flexBasis: "48%", flexGrow: 1 }}
           >
             <Card tone={s.tone} style={{ padding: 8, gap: 2 }}>
               <Row style={{ justifyContent: "space-between" }}>
@@ -343,7 +350,7 @@ export function CollectScreen() {
         onSelect={setFilter}
       />
       <View style={{ gap: 4 }}>
-        {filtered.slice(0, 5).map((shop) => (
+        {filtered.map((shop) => (
           <Card
             key={shop.id}
             onPress={() => go("shop-details", shop.id)}
@@ -354,25 +361,18 @@ export function CollectScreen() {
               <View style={{ flex: 1, minWidth: 0 }}>
                 <T weight="bold" size={13}>
                   {language === "ps"
-                    ? `دوکان ${String(shop.id).padStart(2, "0")}`
-                    : `Shop ${String(shop.id).padStart(2, "0")}`}
+                    ? `دوکان ${shop.number}`
+                    : `Shop ${shop.number}`}
                 </T>
                 <T size={11} color={c.sub} lines={1}>
-                  {language === "ps"
-                    ? [
-                        "احمد خان",
-                        "بلال الکترونیک",
-                        "زاهد موبایل",
-                        "کریم خیاط",
-                        "د ملګرو ټولګه",
-                      ][shop.id - 1]
-                    : shop.id === 1
-                      ? shop.keeper
-                      : shop.name}
+                  {shop.id === 1 ? shop.keeper : shop.name}
                 </T>
                 <T size={10} color={c.sub}>
                   {shop.phone}
                 </T>
+                {shop.occupied && shop.rentalType === "prepaid" && (
+                  <Badge label="Prepaid" tone="blue" small />
+                )}
               </View>
               <View style={{ flex: 1.05, gap: 1 }}>
                 <Badge
@@ -396,15 +396,19 @@ export function CollectScreen() {
                       : c.sub
                   }
                 >
-                  {shop.status === "Paid"
-                    ? "Paid on 5 Mar 2026"
-                    : shop.status === "Partial"
-                      ? `Paid: ${number(shop.paid)} · Due: ${number(Math.max(0, shop.rent - shop.paid))}`
-                      : shop.status === "Unpaid"
-                        ? "No payment yet"
-                        : shop.status === "Overdue"
-                          ? "15 days overdue"
-                          : `Used credit: ${number(shop.rent)}`}
+                  {shop.prepaid
+                    ? shop.prepaid.currentDueDate
+                      ? `AFN ${number(shop.prepaid.currentApplied)}`
+                      : "Not started"
+                    : shop.status === "Paid"
+                      ? "Paid on 5 Mar 2026"
+                      : shop.status === "Partial"
+                        ? `Paid: ${number(shop.paid)} · Due: ${number(rentPosition(shop, today).due)}`
+                        : shop.status === "Unpaid"
+                          ? "No payment yet"
+                          : shop.status === "Overdue"
+                            ? "15 days overdue"
+                            : `Used credit: ${number(shop.rent)}`}
                 </T>
               </View>
               <Icon name="ChevronRight" size={17} color={c.sub} />
@@ -451,15 +455,35 @@ export function ShopsScreen() {
   const { c } = useUI();
   const go = useGo();
   const shops = usePreviewLedger((s) => s.shops);
+  const occupied = shops.filter((shop) => shop.occupied).length;
+  const prepaid = shops.filter(
+    (shop) => shop.occupied && shop.rentalType === "prepaid",
+  ).length;
+  const today = useToday();
+  const vacant = shops.length - occupied;
+  const occupiedPercent = shops.length
+    ? Math.round((occupied / shops.length) * 100)
+    : 0;
+  const vacantPercent = shops.length ? 100 - occupiedPercent : 0;
+  const filters = [
+    `All (${shops.length})`,
+    `Occupied (${occupied})`,
+    `Vacant (${vacant})`,
+    `Prepaid (${prepaid})`,
+  ];
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All (20)");
+  const [filter, setFilter] = useState("All");
   const filtered = shops.filter(
     (s) =>
-      `${s.name} ${s.keeper} ${s.id}`
+      `${s.name} ${s.keeper} ${s.number} ${s.phone}`
         .toLowerCase()
         .includes(search.toLowerCase()) &&
       (filter.startsWith("All") ||
-        (filter.startsWith("Occupied") ? s.occupied : !s.occupied)),
+        (filter.startsWith("Prepaid")
+          ? s.occupied && s.rentalType === "prepaid"
+          : filter.startsWith("Occupied")
+            ? s.occupied
+            : !s.occupied)),
   );
   return (
     <View style={{ flex: 1 }}>
@@ -470,20 +494,25 @@ export function ShopsScreen() {
         trailing={<Offline />}
       >
         <Row gap={8}>
-          <Metric label="Total Shops" value="20" icon="Store" tone="teal" />
+          <Metric
+            label="Total Shops"
+            value={String(shops.length)}
+            icon="Store"
+            tone="teal"
+          />
           <Metric
             label="Occupied Shops"
-            value="14"
+            value={String(occupied)}
             icon="Store"
             tone="green"
-            detail="70% Occupied"
+            detail={`${occupiedPercent}% Occupied`}
           />
           <Metric
             label="Vacant Shops"
-            value="6"
+            value={String(vacant)}
             icon="Store"
             tone="muted"
-            detail="30% Vacant"
+            detail={`${vacantPercent}% Vacant`}
           />
         </Row>
         <Search
@@ -491,12 +520,16 @@ export function ShopsScreen() {
           onChange={setSearch}
           placeholder="Search shops, shopkeeper or number…"
           onFilter={() =>
-            setFilter(filter.startsWith("Vacant") ? "All (20)" : "Vacant (6)")
+            setFilter(filter.startsWith("Vacant") ? "All" : "Vacant")
           }
         />
         <Chips
-          options={["All (20)", "Occupied (14)", "Vacant (6)"]}
-          selected={filter}
+          options={filters}
+          selected={
+            filters.find((option) =>
+              option.startsWith(filter.split(" (")[0]),
+            ) ?? filters[0]
+          }
           onSelect={setFilter}
         />
         {filtered.map((shop) => (
@@ -511,10 +544,7 @@ export function ShopsScreen() {
                 style={{ width: 55, height: 59, borderRadius: 8 }}
               />
               <View style={{ flex: 1.1, minWidth: 0 }}>
-                <T
-                  weight="bold"
-                  size={13}
-                >{`Shop #${String(shop.id).padStart(2, "0")}`}</T>
+                <T weight="bold" size={13}>{`Shop #${shop.number}`}</T>
                 <T size={10} color={c.sub} lines={1}>
                   {shop.name}
                 </T>
@@ -530,8 +560,14 @@ export function ShopsScreen() {
               />
               <View style={{ flex: 1.05 }}>
                 <Badge
-                  label={shop.occupied ? "Occupied" : "Vacant"}
-                  tone={shop.occupied ? "green" : "muted"}
+                  label={rentalTag(shop)}
+                  tone={
+                    shop.occupied
+                      ? shop.rentalType === "prepaid"
+                        ? "blue"
+                        : "green"
+                      : "muted"
+                  }
                   icon={shop.occupied ? "CircleCheck" : "Store"}
                   small
                 />
@@ -549,7 +585,7 @@ export function ShopsScreen() {
                       Balance
                     </T>
                     <T size={10} weight="bold" color={c.primary}>
-                      {number(Math.max(0, shop.rent - shop.paid))}
+                      {number(rentPosition(shop, today).due)}
                     </T>
                   </View>
                 </Row>

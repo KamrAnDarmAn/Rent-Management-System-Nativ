@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initialShops } from "./data";
 import { Shop } from "./types";
+import { rentPosition } from "./rent";
 
 type Preferences = {
   language: "en" | "ps";
@@ -39,8 +40,10 @@ type PreviewState = {
   shops: Shop[];
   expenses: { description: string; amount: number; category: string }[];
   collect: (id: number, amount: number) => void;
+  collectPrepaid: (id: number, amount: number) => void;
   applyCredit: (id: number, amount: number) => void;
   addShop: (shop: Shop) => void;
+  deleteShop: (id: number) => void;
   updateShop: (id: number, changes: Partial<Shop>) => void;
   addExpense: (expense: {
     description: string;
@@ -67,21 +70,62 @@ export const usePreviewLedger = create<PreviewState>((set) => ({
           : s,
       ),
     })),
+  collectPrepaid: (id, amount) =>
+    set((state) => ({
+      shops: state.shops.map((shop) => {
+        if (shop.id !== id) return shop;
+        const position = rentPosition(shop);
+        const dueDate = position.prepaid?.currentDueDate;
+        if (
+          !dueDate ||
+          !Number.isSafeInteger(amount) ||
+          amount <= 0 ||
+          amount > position.due
+        )
+          return shop;
+        return {
+          ...shop,
+          prepaidPayments: {
+            ...shop.prepaidPayments,
+            [dueDate]: (shop.prepaidPayments?.[dueDate] ?? 0) + amount,
+          },
+        };
+      }),
+    })),
   applyCredit: (id, amount) =>
     set((state) => ({
-      shops: state.shops.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              paid: s.paid + amount,
-              credit: s.credit - amount,
-              status:
-                s.paid + amount >= s.rent ? "Settled by Credit" : "Partial",
-            }
-          : s,
-      ),
+      shops: state.shops.map((shop) => {
+        if (shop.id !== id) return shop;
+        const position = rentPosition(shop);
+        if (
+          !Number.isSafeInteger(amount) ||
+          amount <= 0 ||
+          amount > shop.credit ||
+          amount > position.due
+        )
+          return shop;
+        const dueDate = position.prepaid?.currentDueDate;
+        if (dueDate)
+          return {
+            ...shop,
+            credit: shop.credit - amount,
+            prepaidPayments: {
+              ...shop.prepaidPayments,
+              [dueDate]: (shop.prepaidPayments?.[dueDate] ?? 0) + amount,
+            },
+          };
+        return {
+          ...shop,
+          paid: shop.paid + amount,
+          credit: shop.credit - amount,
+          status:
+            shop.paid + amount >= shop.rent ? "Settled by Credit" : "Partial",
+        };
+      }),
     })),
   addShop: (shop) => set((state) => ({ shops: [...state.shops, shop] })),
+  deleteShop: (id) =>
+    set((state) => ({ shops: state.shops.filter((shop) => shop.id !== id) })),
   updateShop: (id, changes) =>
     set((state) => ({
       shops: state.shops.map((s) => (s.id === id ? { ...s, ...changes } : s)),

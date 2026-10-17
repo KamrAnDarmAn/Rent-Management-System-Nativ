@@ -2,6 +2,81 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 const ps: Record<string, string> = {
+  Monthly: "میاشتنۍ",
+  Prepaid: "مخکې ورکړل شوې کرایه",
+  "Prepaid Rent": "مخکې ورکړل شوې کرایه",
+  "Rental Payment Type": "د کرایې د ورکړې ډول",
+  "The shopkeeper pays rent every month.": "دوکاندار هره میاشت کرایه ورکوي.",
+  "An advance payment covers rent automatically each month.":
+    "مخکې ورکړل شوې پیسې هره میاشت په اتومات ډول له کرایې څخه کمېږي.",
+  "Advance Rent Received (AFN)": "د کرایې مخکې ترلاسه شوې پیسې (افغانۍ)",
+  "Total advance for this agreement, not the remaining balance.":
+    "د دې تړون ټولې مخکې ورکړل شوې پیسې، نه پاتې پیسې.",
+  "Advance Start Date": "د مخکې ورکړل شوې کرایې د پیل نېټه",
+  "First rent payment covered by this advance (YYYY-MM-DD).":
+    "د لومړۍ کرایې نېټه چې له دې پیسو ورکول کېږي (YYYY-MM-DD).",
+  "Changing the amount, start date or rent recalculates this agreement.":
+    "د پیسو، پیل نېټې یا کرایې په بدلولو سره د دې تړون حساب بیا کېږي.",
+  "Advance available": "مخکې ورکړل شوې پیسې شته",
+  "Advance used up": "مخکې ورکړل شوې پیسې ختمې شوې",
+  "Advance Received": "مخکې ترلاسه شوې پیسې",
+  "Applied to Rent": "په کرایه لګېدلې پیسې",
+  "Advance Remaining": "پاتې مخکې ورکړل شوې پیسې",
+  "Calculated as of": "د حساب نېټه",
+  "Monthly deduction": "میاشتنی کسر",
+  "Full months covered": "د بشپړو میاشتو کرایه",
+  "Extra partial-month coverage": "د اضافي میاشتې د کرایې یوه برخه",
+  "Rent payments covered so far": "تراوسه ورکړل شوې کرایې",
+  "Full months remaining": "پاتې بشپړې میاشتې",
+  "Partial amount remaining": "د یوې میاشتې پاتې برخه",
+  "Last advance application": "له مخکې ورکړل شوو پیسو وروستی کسر",
+  "Cash payments start": "د نغدو پیسو د ورکړې پیل",
+  "Next automatic application": "راتلونکی اتومات کسر",
+  "Rent is applied on the start date and each monthly anniversary. A short month uses its last day.":
+    "کرایه د پیل په نېټه او هره میاشت په هماغه ورځ حسابېږي. که میاشت لنډه وي، وروستۍ ورځ یې کارول کېږي.",
+  "The final payment may be partly covered. Construction credit is kept separately.":
+    "د وروستۍ کرایې یوه برخه ښايي پاتې شي. ساختماني اعتبار جلا ساتل کېږي.",
+  "Enter a positive whole-AFN advance.":
+    "مخکې ورکړل شوې پیسې په مثبتو بشپړو افغانیو ولیکئ.",
+  "Use a valid YYYY-MM-DD advance start date.":
+    "د مخکې ورکړل شوې کرایې د پیل سمه نېټه په YYYY-MM-DD بڼه ولیکئ.",
+  "Advance cannot start before the tenancy start date.":
+    "د مخکې ورکړل شوې کرایې پیل د کرایې د تړون له پیل څخه مخکې نشي کېدای.",
+  "Advance coverage must end before year 10000.":
+    "د مخکې ورکړل شوې کرایې موده باید له ۱۰۰۰۰ کال مخکې پای ته ورسېږي.",
+  "Current rental period": "د کرایې اوسنۍ موده",
+  "Not started": "لا نه ده پیل شوې",
+  "No cash payment is due for this rental period.":
+    "د کرایې د دې مودې لپاره نغدې پیسې نه دي پاتې.",
+  "This payment settles the current rental period only.":
+    "دا پیسې یوازې د کرایې اوسنۍ موده تصفیه کوي.",
+  "Enter a positive amount no greater than the remaining rent.":
+    "مثبتې پیسې ولیکئ چې له پاتې کرایې زیاتې نه وي.",
+  "Payment added to the preview ledger.":
+    "تادیه په ازمایښتي دفتر کې زیاته شوه.",
+  "Edit Shop": "دوکان سم کړئ",
+  "Update Shop": "دوکان تازه کړئ",
+  "Update shop and shopkeeper details": "د دوکان او دوکاندار معلومات تازه کړئ",
+  "Available Construction Credit (AFN)": "شته ساختماني اعتبار (افغانۍ)",
+  "Update the available construction credit for this shop.":
+    "د دې دوکان شته ساختماني اعتبار تازه کړئ.",
+  "Shop updated in the preview ledger.": "دوکان په ازمایښتي دفتر کې تازه شو.",
+  "Shop name is required": "د دوکان نوم اړین دی",
+  "Shopkeeper name is required": "د دوکاندار نوم اړین دی",
+  "Phone number is required": "د اړیکې شمېره اړینه ده",
+  "Enter a positive whole-AFN rent.": "کرایه په مثبتو بشپړو افغانیو ولیکئ.",
+  "Credit must be a nonnegative whole-AFN amount.":
+    "اعتبار باید په بشپړو افغانیو وي او منفي نه وي.",
+  "Use a valid YYYY-MM-DD start date.":
+    "د پیل سمه نېټه د YYYY-MM-DD په بڼه ولیکئ.",
+  "Delete Shop": "دوکان ړنګ کړئ",
+  "Delete this shop?": "دا دوکان ړنګ کړئ؟",
+  "This removes the shop from the current preview. Other shops will be kept.":
+    "دا دوکان له اوسنۍ ازمایښتي بڼې څخه لرې کېږي. نور دوکانونه به پاتې وي.",
+  "Shop deleted from the preview ledger.": "دوکان له ازمایښتي دفتر څخه ړنګ شو.",
+  "Shop not found": "دوکان ونه موندل شو",
+  "This shop is no longer available.": "دا دوکان نور شتون نه لري.",
+  "Back to Shops": "دوکانونو ته بېرته لاړ شئ",
   "All (20)": "ټول (20)",
   "Paid (12)": "ورکړل شوې (12)",
   "Partial (4)": "نیمګړې (4)",
@@ -13,7 +88,7 @@ const ps: Record<string, string> = {
   Spend: "لګښتونه",
   Shops: "دوکانونه",
   Reports: "راپورونه",
-  Settings: "امستنې",
+  Settings: "تنظیمات",
   "Good Morning!": "سهار مو پخیر!",
   "Manage Collections with Ease": "د کرایې راټولول په اسانۍ اداره کړئ",
   "Al Hafez Plaza": "الحافظ پلازا",
