@@ -204,11 +204,251 @@ Start by setting up the project structure, database schema, navigation, and i18n
 
 ```
 
-
-
-
-
 ```
 for now create a PLAN.md file with all the details so that later you can implement this step by step.
 
+```
+
+-------------- done
+
+Create a UI prompot for chatgpt
+
+```txt
+Generate an image of a complete modern mobile app UI design system and all screen designs for an AI-powered travel planning app called "Roamly".
+
+Roamly is a modern AI travel companion that helps users discover destinations, build personalized itineraries, organize trips, track travel plans, and share travel experiences.
+
+## The app helps users:
+
+- Discover destinations around the world
+- Generate AI-powered travel itineraries
+- Organize flights, hotels, and activities
+- Save places to visit
+- Create day-by-day travel schedules
+- Explore restaurants, attractions, and hidden gems
+- Collaborate with friends on trips
+- Share travel memories and photos
+- Track travel budgets
+- Receive personalized recommendations
+
+## Design Style
+
+- Ultra modern 2026 startup aesthetic
+- Minimalistic, clean, editorial layouts
+- Premium travel-magazine feel
+- Light mode first with airy white space
+- Large immersive destination photography as the hero of every screen
+- Soft rounded corners (16–20px radius)
+- Subtle depth, premium shadows, floating cards
+- Pill-shaped buttons and filter chips
+- Smooth spacing and polished interactions
+- Aspirational, adventurous, inspiring vibe
+- NOT cluttered, NOT corporate, NOT generic travel agency style
+- Apple-level clean UI mixed with luxury travel branding
+
+## Color Palette
+
+- Crisp white and soft off-white backgrounds (#FFFFFF / #FAFAF8)
+- Deep ocean blue primary accent (#3A86FF)
+- Sky blue gradients and sunset orange highlights
+- Deep charcoal text (#1F1F1F)
+- Soft gray secondary text (#8A8A8A)
+- Subtle teal and emerald accents for recommendations
+- Premium glassmorphism effects on selected components
+
+## Typography
+
+- Clean modern sans-serif (SF Pro / Inter style)
+- Large editorial destination headlines
+- Strong hierarchy: bold headings, medium subheads
+- Comfortable readable body text
+- Prominent travel metadata pills ("4 Days", "Budget", "Family Friendly", "Adventure")
+
+## Screens
+
+### 1. Splash Screen
+
+- Roamly logo centered
+- Beautiful destination image blurred in background
+- Minimal branding
+- Premium travel startup feel
+
+### 2. Welcome / Onboarding Screen
+
+- Full-screen breathtaking travel photography
+- Soft gradient overlay
+- Headline: "Your next adventure starts here"
+- Subheadline: "Let AI build the perfect trip for you"
+- Continue with Email
+- Continue with Google
+- Continue with Apple
+- Pill-shaped buttons
+- Small terms and privacy text
+
+### 3. Authentication Screens
+
+- Sign In
+- Sign Up
+- Google Login
+- Apple Login
+- Clean rounded inputs
+- Modern travel aesthetic
+- Ocean-blue primary CTA
+
+### 4. Travel Preferences Onboarding
+
+- Trip style selection chips: Adventure, Luxury, Budget, Nature, Food, Culture, Beach, Solo, Family
+- Favorite destinations selector
+- Budget range slider
+- Travel pace selector
+- Interests selection grid
+- Progress indicator at top
+
+### 5. Home / Explore Screen
+
+Include:
+
+- Large search bar: "Where do you want to go?"
+- AI prompt input
+- Horizontal destination categories: Beach, City, Mountains, Road Trips, Luxury, Food
+- Featured destination hero card
+- Personalized recommendations section
+- Trending destinations carousel
+- Large destination cards with: destination image, country, rating, estimated budget, trip duration, save button
+
+### 6. AI Trip Planner Screen
+
+- AI chat-style interface
+- Trip generation form
+- Destination field
+- Travel dates
+- Budget selector
+- Travel companions selector
+- Interests chips
+- Large CTA: "Generate My Trip"
+- Beautiful generated itinerary preview cards
+
+### 7. Trip Details Screen
+
+- Large immersive destination image carousel
+- Destination overview
+- Weather summary
+- Budget estimate
+- Interactive map preview
+- Trip highlights
+- Recommended restaurants
+- Top attractions
+- Save trip button
+- Share button
+
+### 8. Itinerary Screen
+
+- Beautiful timeline layout
+- Day-by-day schedule
+- Morning / afternoon / evening sections
+- Activity cards
+- Maps integration preview
+- Transport suggestions
+- Editable itinerary blocks
+- Floating add activity button
+
+### 9. Explore Places Screen
+
+- Search places
+- Restaurants, cafes, attractions, hidden gems, shopping, nightlife
+- Interactive filter chips
+- Large destination imagery
+- Save-to-trip action
+
+### 10. Budget Tracker Screen
+
+- Trip spending summary
+- Budget progress bars
+- Expense categories: accommodation, food, transportation, activities, shopping
+- Beautiful financial cards
+- Travel-friendly visualizations
+
+### 11. Travel Memories Screen
+
+- Photo gallery grid
+- Travel journal entries
+- Timeline layout
+- Large destination photos
+- Location tags
+- Share memories CTA
+
+### 12. Saved Trips Screen
+
+- Grid of saved trips
+- Organized collections: Dream Trips, Upcoming, Completed, Favorites
+- Warm empty state
+- Beautiful travel illustrations
+
+### 13. Profile Screen
+
+- Large circular avatar
+- Travel stats: countries visited, trips completed, saved destinations
+- Follower/following counts
+- Tabs: Trips, Saved, Memories
+- Grid of travel photos
+- Settings rows: notifications, preferences, account, help
+- Red log out button
+
+## Direction
+
+Design the app like a real App Store travel startup product. Make every screen feel connected through one cohesive design system.
+
+The experience should feel: premium, aspirational, luxurious, modern, minimal, travel-focused, beautiful, highly polished, emotionally inspiring.
+
+Generate high-quality mobile app mockups in iPhone style with realistic spacing, premium destination photography, modern travel UX, and production-ready startup design quality.
+
+
+
+Depending on the plan that I have I want you to generate a prompt like this that will generate a UI design: # Create the implementation reference: PLAN.md\
+\
+Create a detailed, self-contained document that preserves the interview decisions and supports implementation in reviewable stages.\
+\
+\## Document contents\
+\
+\- Product purpose, intended users, priorities, v1 scope, and explicitly deferred features.\
+\- Confirmed technology choices, exact verified versions, compatibility checks still required, and the existing starter’s migration from Expo Router to direct React Navigation.\
+\- Screen-by-screen journeys for onboarding, collection, goods, expenses, tenancy management, reporting, settings, backup, and device exchange.\
+\- Data entities, relationships, constraints, financial invariants, transaction boundaries, migrations, and opening-balance handling.\
+\- Worked accounting examples covering partial payments, shared shopkeeper balances, construction credits, advances, goods payables, allocation, proration, mid-month rent changes, departures, reversals, and month closing.\
+\- Bilingual design requirements, instant RTL behavior, accessibility, themes, local formatting, and Pashto review.\
+\- Backup encryption, restore validation, independently edited devices, duplicate detection, conflict rejection, and interrupted-transfer recovery.\
+\- Explicit assumptions, unresolved risks, release blockers, and deferred decisions.\
+\
+\## Ordered implementation stages\
+\
+1\. \*\*Validate feasibility:\*\* dependency compatibility, live RTL, nearby Android/iPhone transfer, and sustainable private iPhone distribution. Record findings before dependent implementation.\
+2\. \*\*Build foundations:\*\* project structure, navigation, design tokens, localization, local settings, and error handling.\
+3\. \*\*Implement persistence:\*\* SQLite migrations, financial transactions, stable identities, history, and integrity checks.\
+4\. \*\*Implement management:\*\* shops, people, tenancies, rent schedules, vacancy, opening balances, and onboarding.\
+5\. \*\*Implement collection:\*\* monthly charges, statuses, payments, editable allocations, credits, advances, and arrears.\
+6\. \*\*Implement spending:\*\* expenses, goods payables, cash settlement, rent offsets, and personal/property categorization.\
+7\. \*\*Implement lifecycle controls:\*\* departures, final settlements, reversals, archival, month closing, and reopening.\
+8\. \*\*Implement reports:\*\* cash-only primary reporting, other payment methods, noncash settlements, outstanding balances, charts, and CSV.\
+9\. \*\*Implement recovery:\*\* encrypted exports, validated imports, recovery copies, and reminders.\
+10\. \*\*Implement device exchange:\*\* compatible-history merging, conflict checks, paired local-network transfer, and retry handling.\
+11\. \*\*Polish and validate:\*\* bilingual layouts, dark mode, accessibility, realistic accounting scenarios, airplane-mode operation, and both physical phones.\
+12\. \*\*Prepare delivery:\*\* private builds, installation instructions, backup/recovery guidance, and README.\
+\
+Each stage will include prerequisites, concrete tasks, acceptance criteria, necessary tests, and completion checkboxes.\
+\
+\## Required validation\
+\
+Cover financial calculations and reconciliation, atomic writes, repeated imports, conflicting offline changes, interrupted transfers, migrations, backup recovery, closed-month behavior, and complete offline operation.\
+\
+Keep confirmed decisions separate from assumptions. Preserve unresolved release blockers explicitly rather than silently choosing substitutes.\
+```
+
+---
+
+in loop
+
+---
+
+```
+Alright, so now I want you to go ahead and build the [...screens] and just take a look at [...screens]  reference images that I have right here, and I want you to put yourself into that loop where you compare it with the end result and you keep it trading util it is identical
 ```
