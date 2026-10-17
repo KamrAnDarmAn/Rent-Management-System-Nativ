@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #eef5f6;
+}
+input,
+textarea,
+button {
+  font-family: inherit;
+}
+input:focus,
+textarea:focus {
+  outline: none;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}

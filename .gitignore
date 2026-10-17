@@ -35,6 +35,11 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+.yarn/install-state.gz
+test-results/
+playwright-report/
+artifacts/visual/
+dist-native/
 
 example
 
