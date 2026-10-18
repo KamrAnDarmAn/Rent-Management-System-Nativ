@@ -1,8 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./support/fixtures";
 
 test("main tabs navigate and shop search/filter work", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-17T08:00:00Z") });
   await page.goto("/");
-  await expect(page.getByText("Good Morning!", { exact: true })).toBeVisible();
+  await expect(page.getByText("25 Mizan 1405", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Shops", exact: true }).click();
   await expect(page.getByText("Manage Your Shops with Ease")).toBeVisible();
   await page
@@ -30,7 +31,7 @@ test("main tabs navigate and shop search/filter work", async ({ page }) => {
   await expect(page.getByText("Cash Collection Trend")).toBeVisible();
 });
 
-test("expense form validates then updates preview spend total", async ({
+test("expense form validates then updates the saved spend total", async ({
   page,
 }) => {
   await page.goto("/?screen=spend");
@@ -48,7 +49,9 @@ test("expense form validates then updates preview spend total", async ({
   await expect(
     page.getByText("Screen verification expense", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("AFN 93,000", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Total Expenses", { exact: true }).locator(".."),
+  ).toContainText("AFN 500");
 });
 
 test("language switches instantly and preference survives reload", async ({
@@ -65,7 +68,7 @@ test("language switches instantly and preference survives reload", async ({
 test("theme switches and stays set after reload", async ({ page }) => {
   await page.goto("/?screen=settings");
   await page.getByRole("button", { name: "Appearance", exact: true }).click();
-  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Dark", exact: true }).click();
   await expect(page.getByText("Dark⌄")).toBeVisible();
   await page.reload();
   await expect(page.getByText("Dark⌄")).toBeVisible();
@@ -92,17 +95,16 @@ test("small viewport forms have no page overflow and save action stays accessibl
   ).toBeVisible();
 });
 
-test("transfer action clearly identifies the disconnected service", async ({
-  page,
-}) => {
+test("device transfer opens the real backup flow", async ({ page }) => {
   await page.goto("/?screen=device-transfer");
+  await expect(
+    page.getByText("Transfer with a backup", { exact: true }),
+  ).toBeVisible();
   await page
-    .getByRole("button", { name: "Start Transfer", exact: true })
+    .getByRole("button", { name: "Backup & Restore", exact: true })
     .click();
   await expect(
-    page.getByText(
-      "Local-network transfer is not connected. These are sample devices; no data was sent.",
-    ),
+    page.getByRole("button", { name: "Create Backup", exact: true }),
   ).toBeVisible();
 });
 
@@ -122,7 +124,9 @@ test("shop deletion requires confirmation and updates both shop lists", async ({
   ).toBeVisible();
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByText("Shop Details", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit Shop", exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Delete Shop", exact: true }).click();
   await dialog
     .getByRole("button", { name: "Delete Shop", exact: true })
@@ -221,22 +225,25 @@ test("editing a shop updates every section without replacing its identity or pay
     "Phone Number": "0709 123456",
     Address: "Second Floor, Kabul",
     "Monthly Rent (AFN)": "30000",
-    "Start Date": "2026-04-12",
+    "Start Date": "2024-01-01",
     "Available Construction Credit (AFN)": "60000",
     "Notes (Optional)": "Renovation and updated rental agreement.",
   };
   for (const [label, value] of Object.entries(values))
     await page.getByRole("textbox", { name: label, exact: true }).fill(value);
-  await page.getByRole("button", { name: "Vacant", exact: true }).click();
   await page.getByRole("button", { name: "Update Shop", exact: true }).click();
-  await expect(page.getByText("Shop Details", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit Shop", exact: true }),
+  ).toBeVisible();
   const detail = page
     .getByTestId("screen-scroll")
     .filter({ has: page.getByText("Shop Information", { exact: true }) });
   await expect(
     detail.getByText("Shop #A-12", { exact: true }).first(),
   ).toBeVisible();
-  await expect(detail.getByText(values.Address, { exact: true })).toBeVisible();
+  await expect(
+    detail.getByText(values.Address, { exact: true }).first(),
+  ).toBeVisible();
   await expect(
     detail.getByText(values["Notes (Optional)"], { exact: true }),
   ).toBeVisible();
@@ -327,7 +334,9 @@ test("edit validates duplicate numbers, credit, and dates without partial writes
     page.getByRole("textbox", { name: "Start Date", exact: true }),
   ).toHaveValue("2024-01-01");
   await page.getByRole("button", { name: "Update Shop", exact: true }).click();
-  await expect(page.getByText("Shop Details", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit Shop", exact: true }),
+  ).toBeVisible();
 });
 
 test("new shops retain address, date, credit and notes when edited", async ({

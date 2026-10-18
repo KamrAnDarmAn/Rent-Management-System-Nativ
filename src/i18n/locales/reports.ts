@@ -1,0 +1,35 @@
+export const reports: Record<string, string> = {
+  Reports: "راپورونه",
+  "Insights for a Better Tomorrow": "خپل حساب ښه وپېژنئ",
+  "Cash basis · AFN": "د نغدو پیسو حساب · افغانۍ",
+  "Total Cash Collected": "ټولې اخیستې نغدې پیسې",
+  "Cash Collected": "اخیستې نغدې پیسې",
+  "Other-Method Collections": "له نورو لارو اخیستې پیسې",
+  "Net Cash Flow": "له لګښتونو وروسته پاتې نغدې",
+  "Cash received − cash spent": "اخیستې نغدې منفي لګښت شوې نغدې",
+  "Active Shops": "روان دوکانونه",
+  "Total Collected (This Month)": "د دې میاشتې ټولې اخیستې پیسې",
+  Expected: "تمه کېدونکې",
+  "Expected vs Collected": "تمه کېدونکې او اخیستې کرایه",
+  "Cash Collection Trend": "د نغدو پیسو د اخیستلو بدلون",
+  "Monthly Financial Flow": "په هره میاشت کې د پیسو حساب",
+  "Outstanding by Shop": "د هر دوکان پاتې حساب",
+  "Yearly Summary (2025 – 2026)": "د کال لنډ حساب (2025 – 2026)",
+  "Monthly Summary": "د میاشتې لنډ حساب",
+  "Shop Financial Report": "د دوکان د پیسو راپور",
+  "Export CSV": "د حساب فایل جوړ کړئ",
+  "Export CSV Summary": "د لنډ حساب فایل جوړ کړئ",
+  "CSV export is not connected to a production ledger yet.":
+    "په دې ازمایښتي بڼه کې د اصلي حساب فایل لا نه جوړېږي.",
+  "CSV export will connect to the production ledger. This screen currently displays sample reports.":
+    "د اصلي حساب فایل جوړول به وروسته کار وکړي. اوس دلته د بېلګې راپورونه ښودل کېږي.",
+  "Sample March 2026 report · values are reference fixtures.":
+    "د مارچ 2026 د راپور بېلګه؛ پیسې د نمونې لپاره دي.",
+  "Transaction Summary": "د دې حساب لنډیز",
+  "Noncash ledger entry": "بې له نغدو پیسو ثبت شوی حساب",
+  "Financial Reconciliation Summary": "د حسابونو د برابرولو لنډیز",
+  "Reference figures shown for the visual preview.":
+    "دا شمېرې یوازې د اپ د بېلګې لپاره دي.",
+  "Amount due from shopkeeper": "هغه پیسې چې دوکاندار یې باید ورکړي",
+  "Other Credits": "نورې مخکې ورکړې پیسې",
+};

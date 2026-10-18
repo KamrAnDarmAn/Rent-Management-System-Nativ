@@ -5,7 +5,7 @@ import path from "node:path";
 const baseURL = process.env.PREVIEW_URL || "http://localhost:8087";
 const output = path.resolve("artifacts/visual");
 await mkdir(output, { recursive: true });
-const registry = await readFile("src/data.ts", "utf8");
+const registry = await readFile("src/data/screenReferences.ts", "utf8");
 const screens = [
   ...registry.matchAll(
     /id:\s*["']([^"']+)["'],\s*title:\s*["']([^"']+)["'],\s*file:\s*["']([^"']+)["']/g,

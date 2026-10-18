@@ -5,8 +5,8 @@ import {
   rentDueDate,
   rentPosition,
   validDate,
-} from "../src/rent";
-import type { Shop } from "../src/types";
+} from "../src/domain/rent";
+import { type Shop } from "../src/types/shop";
 
 const plan = { amount: 4000, monthlyRent: 1000, startDate: "2026-08-01" };
 

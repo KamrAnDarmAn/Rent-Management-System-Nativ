@@ -1,102 +1,110 @@
-# Shop Rent Manager
+# GMM
 
-An Expo / React Native implementation of the 31 reference designs in `design/`, using TypeScript, direct React Navigation, NativeWind, reusable themed components, and locally bundled artwork and Inter fonts.
+Offline rent and expense management for a single owner, built with Expo SDK 57, React Native, TypeScript, React Navigation, NativeWind and Zustand. English and Pashto include RTL layouts. The app uses `assets/images/logos/logo.png` for its branding.
 
-## Current build
+## Run locally
 
-This milestone implements the **screen designs and interactive UI preview**. It is not yet the production financial application described in [PLAN.md](PLAN.md).
-
-- Every reference has a corresponding screen or variant, including dark mode, Pashto/RTL, empty states, error states, and the design system.
-- Bottom tabs, screen navigation, search, filters, month selectors, amount shortcuts, forms, allocation controls, dialogs, and preference changes are interactive.
-- Language and appearance preferences persist locally.
-- Every Edit Shop action opens the complete prefilled shop form. Address, start date, credit, occupancy, and notes are editable; changing the display number preserves the internal shop identity and existing payment values within the preview.
-- Occupied shops support Monthly or Prepaid rent. Add/Edit Shop records the total advance and its first covered rent date; a separate Prepaid tag appears in lists and details, with an additional shop filter. Details calculate rent applied through today, remaining advance, full/partial months, and the first cash-due date. Construction credit remains separate.
-- Prepaid calculations use Kabul dates and monthly anniversaries, charging the first installment on the advance start date and clamping short months to their last day. They recalculate on opening/resuming the app and while it is open, without repeatedly deducting a stored balance. Editing the agreement amount/date/rate recalculates the schedule. This is a fixed-rate preview projection, not audited monthly postings or effective-dated rent history.
-- Prepaid collection allows only the uncovered remainder of the current rental period. These period-specific settlements do not carry forward as payment for the next period. Existing monthly preview payments remain separate from the prepaid agreement; no receipt is created by calculating advance usage.
-- Adding/deleting shops, collecting payments, applying credit, editing rent, and recording expenses update an **in-memory sample ledger**. These records reset on application restart. Sample reports use reference fixtures and are not an accounting reconciliation of those records.
-- Backup, import, nearby transfer, CSV, notification scheduling, and audited financial posting are **not connected**. Their controls explain this; no actual backup, transfer, notification, or reversal is claimed.
-- Translations cover the Pashto dashboard and core navigation/preferences. Additional screens retain English fallbacks pending complete translation and fluent review.
-
-Do not enter real financial records into this preview.
-
-## Run
-
-Use Node.js compatible with Expo SDK 57 and Yarn 4.18.0. Resolved dependency versions are recorded in `yarn.lock`.
+Use Node 24 and Yarn 4.18.0. Dependency versions are recorded in `yarn.lock`.
 
 ```sh
 yarn install --immutable
 yarn start
 ```
 
-For a web visual preview:
+For native runtime testing, use an Android/iOS development environment with this SDK, or an EAS preview build. First launch opens language/property setup, with an option to restore a backup. No sample shops or payments are created. Returning launches open the saved ledger.
+
+For the browser verification build:
 
 ```sh
-yarn web --port 8087 --max-workers 2
+yarn export:web --max-workers 2
+yarn serve:web
 ```
 
-Open `http://localhost:8087`. The default screen is Collect. Open **Settings → Explore All Screens** to review every design.
+Open `http://localhost:8090`. The included server sends the cross-origin isolation headers required by SQLite's web worker. Expo's web SQLite support is experimental; Android and iOS are the intended production platforms. Browser data belongs to that browser profile and origin. Clearing site storage removes it.
 
-Web preview URLs support `?screen=<id>`, for example:
+## SQLite and Drizzle ORM
 
-- `/?screen=screen-gallery`
-- `/?screen=add-shop`
-- `/?screen=collect-rent`
-- `/?screen=shop-details`
-- `/?screen=backup-restore`
-- `/?screen=dark-theme`
-- `/?screen=pashto-home`
+`src/storage/schema.ts` is the typed Drizzle schema. `src/storage/ledgerRepository.ts` contains the database queries and transactional writes. The local adapter in `src/storage/database.ts` connects Drizzle's asynchronous SQLite query interface directly to **expo-sqlite**. It never calls a server. Async queries also avoid blocking the UI and bypass an SDK 57 web synchronous bridge issue affecting larger query results.
 
-The full reference-to-screen registry is in `src/data.ts`. Phone frames, operating-system status bars, and decorative backgrounds around phones are presentation elements, not application screens. AFN and the interview's business decisions take precedence over rupee amounts, sign-in links, and security deposits shown in some mockups.
+Database tables store shops, rent receipts, rent settlements, expenses, goods, audit entries, closed months and recovery snapshots. Indexed columns and foreign keys enforce relational identity. Typed JSON columns retain agreement details and calendar settlement maps. Keep indexed fields and their typed payload consistent when adding repository methods.
 
-For mobile, use `yarn android` or `yarn ios` with an appropriate Expo development environment. iPhone simulator/runtime checks require Apple tooling or a physical device. Private iPhone distribution remains an open item in the plan.
+To change the schema:
 
-## Verification and visual comparison loop
+1. Edit `src/storage/schema.ts`.
+2. Run `yarn db:generate`.
+3. Review and commit the generated SQL, snapshots, journal in `drizzle/`, and `src/storage/migrations.ts` together.
+4. Test an upgrade from an existing database and a fresh installation.
+
+`yarn db:check` checks that bundled migrations match the SQL. The bundle lets Metro and Node tests execute the same migration statements without a runtime SQL file loader. Applied migration hashes are tracked in `__drizzle_migrations`; never edit an applied migration. Newer or mismatched databases fail safely instead of being reset. The earlier pre-ORM schema is adopted without dropping its tables. If startup fails, the recovery screen can validate a backup and activate a separately committed database; the original file is retained. The active filename pointer is a nonsecret device preference.
+
+The initial native database is `gmm-ledger.db` in Expo SQLite's application database directory. SQLite enables foreign keys, WAL, full synchronous durability, and an integrity check at startup. Mutations are serialized and balances are derived after earlier writes commit. Zustand publishes changes and forms show success only after a successful transaction. A failed write rolls back; saved state is retained. Financial records do not use AsyncStorage. AsyncStorage holds nonsecret preferences only.
+
+## Accounting behavior
+
+- Whole AFN amounts use safe integers; summaries use exact integer totals.
+- Gregorian rent follows the tenancy anniversary with short-month clamping. Afghan Shamsi rent falls on the first day of each month, with the first partial month prorated by actual days.
+- Any positive rent payment settles the oldest unpaid rent first, then the current period. Excess stays as a rent advance. Later allocation does not count as new cash income.
+- Backdated receipts retain their actual receipt dates. Reports distinguish cash received from rent settled and include late settlement of previous periods.
+- Construction credit is separate and applied manually within available credit and unpaid rent. The original prepaid agreement remains separate from new cash advances.
+- Goods can offset rent, remain payable, or be paid in cash. Later cash/offset settlements reduce the payable without counting the original acquisition twice.
+- Rate changes retain the original rate and effective-date history; a change or departure during a month is prorated by days. Use Tenancy Lifecycle for departure and rate changes. Financial history protects the tenancy's original calendar, tracking start and advance agreement from accidental replacement.
+- A receipt reversal retains the receipt and reason, and recalculates balances. It is a correction, not a cash refund.
+- Closing a completed calendar month blocks records dated in that interval. Later payments may still settle its old debt. Reopen it to correct an earlier dated record.
+- Delete/Archive removes a shop from active lists while retaining its financial history and freezing future rent accrual at the last issued period. Data Management provides archived records and restore. No destructive financial-history deletion is exposed.
+
+## Backup and recovery
+
+Settings → Backup & Restore exports a complete versioned JSON backup with ledger data and language/theme/calendar preferences. Native exports are written and read back for verification before opening the share sheet. Browser exports download a real file.
+
+- An optional password of at least 10 characters encrypts the backup with AES-256-GCM and PBKDF2-SHA256 (210,000 iterations), with secure random salt/nonce. Passwords are never stored and cannot be recovered.
+- Without a password, backups contain readable private financial data. A checksum detects accidental corruption; it is not an authenticity guarantee.
+- Imports validate file size, version, checksums/authentication, amounts, dates, identities and references before showing a preview. Explicit replacement confirmation is required. There is no automatic merge.
+- Restore is transactional and keeps a recovery copy of the previous ledger. The latest 20 previous ledger states are available on the device. They do **not** replace an external backup.
+- Notifications are disabled after restoring settings until permission is granted on the new device.
+- Device Transfer explains copying a backup to another device; it does not simulate nearby discovery or cloud sync.
+
+Save backups outside the app/phone regularly and verify a restore on a second device. Uninstalling the app, losing the phone, or clearing browser storage can remove local records and on-device recovery copies. SQLite is protected by the OS app sandbox, not an app-specific encryption password. Use the device lock for local access protection. No account, cloud storage, remote analytics or server is required.
+
+## Reminders
+
+Optional local notifications require device permission. Scheduling uses 9 AM Afghanistan time and the chosen lead time, skips rent covered by advance, and refreshes when the app opens/resumes or records change. The next 50 reminders are scheduled to stay within platform limits. Keep opening GMM regularly. OS settings, power management and notification permissions can delay/prevent delivery; reminders never change balances. Test reminders on a physical device with the app in the background.
+
+## Structure
+
+- `src/components/`: reusable forms, menus, charts, layouts, branding and theme.
+- `src/screens/`: feature-specific screens and smaller sections/hooks.
+- `src/domain/`: deterministic rent allocation, calendar rules, reports, validation and backup encoding.
+- `src/storage/`: ORM schema, migrations, SQLite adapter and file import/export.
+- `src/store/`: durable ledger actions and nonsecret preferences.
+- `src/bootstrap/`, `src/navigation/`: startup/setup gating and navigation.
+- `src/i18n/`: English display keys and plain Pashto translations.
+- `tests/`: financial/storage tests and browser interaction tests. Samples are imported through an explicit test-only backup fixture; production stays empty.
+
+## Verification
 
 ```sh
 yarn typecheck
-yarn expo install --check
+yarn check:architecture
+yarn check:translations
+yarn db:check
 yarn format:check
-yarn export:web --max-workers 2
+yarn expo install --check
 ```
 
-With the preview server running:
+Finish the web export and start `yarn serve:web` before running the full suite:
 
 ```sh
-yarn test:visual
-yarn capture:screens
-yarn compare:screens
+PREVIEW_URL=http://127.0.0.1:8090 yarn test
 ```
 
-- Interaction tests verify navigation, search/filter behavior, expense validation, instant language changes, persisted preferences, narrow-screen forms, and disconnected-service feedback.
-- Capture checks visit all 31 designs at 390 × 844, check runtime errors and document overflow, and save top/bottom screenshots.
-- Comparison sheets pair cropped reference content with rendered screens; contact sheets make the screen set reviewable.
-- Generated screenshots and `results.json` are in `artifacts/visual/` and excluded from Git. Comparison sheets require Python and Pillow.
-- Screenshots support visual review; they do not assert pixel identity. Physical Android/iPhone runtime and gesture testing remains necessary.
-- Set `PREVIEW_URL` to use another server. Browser tooling defaults to `/usr/bin/google-chrome`; set `CHROME_PATH` for another installed Chromium executable.
+Browser tests use `/usr/bin/google-chrome`; set `CHROME_PATH` for another installed Chromium executable. Tests cover onboarding, reload/offline persistence, partial/advance payments, Shamsi proration, report reconciliation, transactional rollback, backups, reversals, month locks, language/RTL, dropdown positioning and shop management. Node's SQLite test API is experimental; this does not affect the native database driver.
 
-Tests can also use a static production export:
-
-```sh
-python -m http.server 8087 --bind 127.0.0.1 --directory dist
-```
-
-Finish exporting **before** testing against `dist`; rebuilding it temporarily removes the files being served.
-
-Validate native bundles without launching devices:
+Validate native JavaScript/assets without launching a device:
 
 ```sh
 yarn expo export --platform android --platform ios --output-dir dist-native --max-workers 2
 ```
 
-## Source structure
+The GitHub Actions workflow runs these checks against a production web export on pushes and pull requests.
 
-- `App.tsx`, `index.ts`: entry, local fonts, theme/language context, navigation, feedback.
-- `src/navigation.tsx`: bottom tabs, detail stack, reference preview routing.
-- `src/ui.tsx`: typography, fields, cards, buttons, status indicators, chart primitives, page layout.
-- `src/screens/`: main tabs, transaction forms, detail/history screens, preferences, onboarding, variants.
-- `src/store.ts`: persisted preferences and a separate in-memory demo store.
-- `src/i18n.ts`: English fallback and initial Pashto resources.
-- `src/data.ts`: sample fixtures, artwork imports, reference-screen registry.
-- `tests/`, `scripts/`: interactions, captures, visual comparison sheets.
-
-Production persistence, accounting, migrations, encrypted recovery, and conflict-safe exchange follow the staged work in `PLAN.md`.
+These checks do not produce a signed app or prove native device behavior. Before distributing a release, verify fresh install, upgrade with existing data, process termination/relaunch during a save, backup share/import and encrypted restore, notification permission/delivery, keyboard/safe areas, Android back navigation, and Pashto RTL on physical Android/iOS devices. Confirm release identifiers `com.gmm.marketmanager`, signing credentials, store metadata and privacy declarations for the owner's distribution account. `eas.json` provides an internal Android APK preview profile and a production profile; no build or store publication is performed automatically.

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/fixtures";
 
 async function fixedDate(page: Page) {
   await page.clock.setFixedTime(new Date("2026-10-17T10:00:00Z"));
@@ -80,7 +80,7 @@ test("add prepaid shop shows a distinct tag, automatic coverage, and prefilled e
   ).toBeVisible();
 });
 
-test("a partial final advance permits only the unpaid remainder to be collected", async ({
+test("a partial final advance settles the remainder and keeps extra cash for the next month", async ({
   page,
 }) => {
   await page.clock.install({ time: new Date("2026-10-17T10:00:00Z") });
@@ -100,13 +100,9 @@ test("a partial final advance permits only the unpaid remainder to be collected"
   ).toBeVisible();
   await button(page, "Collect Rent").click();
   await textbox(page, "Payment Amount").fill("501");
-  await button(page, "Save Payment").click();
   await expect(
-    page.getByText(
-      "Enter a positive amount no greater than the remaining rent.",
-    ),
-  ).toBeVisible();
-  await textbox(page, "Payment Amount").fill("500");
+    page.getByText("Rent Advance After Payment", { exact: true }).locator(".."),
+  ).toContainText("AFN 1");
   await button(page, "Save Payment").click();
   await expect(
     detail(page)
@@ -125,7 +121,7 @@ test("a partial final advance permits only the unpaid remainder to be collected"
     current
       .getByText("Remaining Balance", { exact: true })
       .locator("..")
-      .getByText("AFN 1,000", { exact: true }),
+      .getByText("AFN 999", { exact: true }),
   ).toBeVisible();
   await expect(button(page, "Save Payment")).toBeEnabled();
 });

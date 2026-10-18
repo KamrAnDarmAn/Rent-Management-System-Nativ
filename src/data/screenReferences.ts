@@ -1,0 +1,190 @@
+import { type ScreenId } from "../navigation/types";
+
+export const screenReferences: {
+  id: ScreenId;
+  title: string;
+  file: string;
+  group: string;
+}[] = [
+  {
+    id: "collect",
+    title: "Collect dashboard",
+    file: "shop-card-screen.png",
+    group: "Main tabs",
+  },
+  {
+    id: "spend",
+    title: "Expenses",
+    file: "expenses-screen.png",
+    group: "Main tabs",
+  },
+  { id: "shops", title: "Shops", file: "shops-screen.png", group: "Main tabs" },
+  {
+    id: "reports",
+    title: "Reports",
+    file: "reports-screen.png",
+    group: "Main tabs",
+  },
+  {
+    id: "settings",
+    title: "Settings",
+    file: "settings-screen.png",
+    group: "Main tabs",
+  },
+  {
+    id: "splash",
+    title: "Splash",
+    file: "splash-screen.png",
+    group: "Getting started",
+  },
+  {
+    id: "get-started",
+    title: "Get started",
+    file: "get-started-screen.png",
+    group: "Getting started",
+  },
+  {
+    id: "setup-property",
+    title: "Set up property",
+    file: "setup-property-screen.png",
+    group: "Getting started",
+  },
+  {
+    id: "add-shop",
+    title: "Add shop",
+    file: "add-shop-screen.png",
+    group: "Management",
+  },
+  {
+    id: "shop-details",
+    title: "Shop details",
+    file: "shop-details-screen.png",
+    group: "Management",
+  },
+  {
+    id: "shopkeeper",
+    title: "Shopkeeper",
+    file: "shop-keeper-screen.png",
+    group: "Management",
+  },
+  {
+    id: "tenancy-lifecycle",
+    title: "Tenancy lifecycle",
+    file: "tnancy-lifecycle-screen.png",
+    group: "Management",
+  },
+  {
+    id: "collect-rent",
+    title: "Collect rent",
+    file: "collect-rent-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "apply-credit",
+    title: "Apply credit",
+    file: "apply-credity-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "construction-credit",
+    title: "Construction credit",
+    file: "constuction-credit-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "goods-taken",
+    title: "Goods taken from shop",
+    file: "goods-taken-from-shop-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "goods-settlement",
+    title: "Goods settlement",
+    file: "goods-settlement-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "add-expense",
+    title: "Add expense",
+    file: "add-expense-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "reverse-transaction",
+    title: "Reverse transaction",
+    file: "reverse-transaction-screen.png",
+    group: "Transactions",
+  },
+  {
+    id: "rent-history",
+    title: "Rent history",
+    file: "rent-history-screen.png",
+    group: "Reports & history",
+  },
+  {
+    id: "shop-financial-report",
+    title: "Shop financial report",
+    file: "shop-financial-report-screen.png",
+    group: "Reports & history",
+  },
+  {
+    id: "month-closing",
+    title: "Month closing",
+    file: "month-closing-screen.png",
+    group: "Reports & history",
+  },
+  {
+    id: "language",
+    title: "Language",
+    file: "language-screen.png",
+    group: "Preferences",
+  },
+  {
+    id: "reminders",
+    title: "Reminders",
+    file: "remainders-screen.png",
+    group: "Preferences",
+  },
+  {
+    id: "backup-restore",
+    title: "Backup & restore",
+    file: "backup-and-restore-screen.png",
+    group: "Preferences",
+  },
+  {
+    id: "device-transfer",
+    title: "Device transfer",
+    file: "device-transfer-screen.png",
+    group: "Preferences",
+  },
+  {
+    id: "dark-theme",
+    title: "Dark theme",
+    file: "dark-theme-screen.png",
+    group: "Variants & states",
+  },
+  {
+    id: "pashto-home",
+    title: "Pashto dashboard",
+    file: "pashto-home-screen.png",
+    group: "Variants & states",
+  },
+  {
+    id: "empty-states",
+    title: "Empty states",
+    file: "manage-collection-screen.png",
+    group: "Variants & states",
+  },
+  {
+    id: "error-states",
+    title: "Errors & edge states",
+    file: "error-and-edge-states-badges.png",
+    group: "Variants & states",
+  },
+  {
+    id: "design-system",
+    title: "Design system",
+    file: "design-system.png",
+    group: "Variants & states",
+  },
+];

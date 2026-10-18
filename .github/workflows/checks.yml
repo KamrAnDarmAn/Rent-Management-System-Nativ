@@ -1,0 +1,41 @@
+name: GMM checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn typecheck
+      - run: yarn check:architecture
+      - run: yarn check:translations
+      - run: yarn db:check
+      - run: yarn format:check
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn export:web --max-workers 2
+      - name: Run financial, SQLite and browser checks
+        run: |
+          node scripts/serve-web.mjs > /tmp/gmm-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8090 > /dev/null; then break; fi
+            sleep 1
+          done
+          export PREVIEW_URL=http://127.0.0.1:8090
+          export CHROME_PATH="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+          yarn test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results/

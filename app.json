@@ -1,37 +1,44 @@
 {
   "expo": {
-    "name": "Shop Rent Manager",
-    "slug": "Market-Management-System",
+    "name": "GMM",
+    "slug": "gmm",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "marketmanagementsystem",
+    "icon": "./assets/images/logos/logo.png",
+    "scheme": "gmm",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gmm.marketmanager",
+      "icon": "./assets/images/logos/logo.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/logos/logo.png",
+        "backgroundColor": "#f0f9f8"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.gmm.marketmanager",
+      "versionCode": 1,
+      "allowBackup": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logos/logo.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#f0f9f8",
+          "image": "./assets/images/logos/logo.png",
+          "imageWidth": 180
         }
-      ]
+      ],
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-document-picker",
+      "expo-notifications"
     ],
     "experiments": {
       "reactCompiler": false
