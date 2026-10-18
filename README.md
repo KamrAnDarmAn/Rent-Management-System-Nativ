@@ -15,6 +15,8 @@ For native runtime testing, use an Android/iOS development environment with this
 
 Startup uses the splash design in `design/splash-screen.png`, with the supplied transparent artwork at `assets/images/spalsh-screen-background.png`. The branded screen waits for its images and fonts, then opens setup or the saved ledger once SQLite is ready. English/Pashto and reduced-motion preferences are supported. Preview the composition on the web at `/?screen=splash`. Native launch configuration changes require a new APK; Android's system-controlled launch icon appears before the full illustrated screen.
 
+Saved preferences are loaded once during startup and validated before use. Invalid individual settings fall back to defaults, and persisted values cannot replace store actions. A screen rendering failure offers a translated retry screen that remounts the app and reopens the committed ledger without resetting it. This recovery screen does not catch native process crashes or replace database recovery.
+
 For the browser verification build:
 
 ```sh
@@ -41,6 +43,8 @@ To change the schema:
 
 The initial native database is `gmm-ledger.db` in Expo SQLite's application database directory. SQLite enables foreign keys, WAL, full synchronous durability, and an integrity check at startup. Mutations are serialized and balances are derived after earlier writes commit. Zustand publishes changes and forms show success only after a successful transaction. A failed write rolls back; saved state is retained. Financial records do not use AsyncStorage. AsyncStorage holds nonsecret preferences only.
 
+Startup also checks foreign-key integrity. Missing metadata is accepted only when every ledger and recovery table is empty; existing expenses, history or recovery copies trigger recovery instead of showing first-time setup or allowing an empty ledger to overwrite them.
+
 ## Accounting behavior
 
 - Whole AFN amounts use safe integers; summaries use exact integer totals.
@@ -66,6 +70,8 @@ Settings → Backup & Restore exports a complete versioned JSON backup with ledg
 - Device Transfer explains copying a backup to another device; it does not simulate nearby discovery or cloud sync.
 
 Save backups outside the app/phone regularly and verify a restore on a second device. Uninstalling the app, losing the phone, or clearing browser storage can remove local records and on-device recovery copies. SQLite is protected by the OS app sandbox, not an app-specific encryption password. Use the device lock for local access protection. No account, cloud storage, remote analytics or server is required.
+
+Android builds block overlay and broad external-storage permissions. Backups use the app's private files, the system document picker, and file sharing. Android's [Storage Access Framework](https://developer.android.com/training/data-storage/shared/documents-files) grants access to the selected document without a storage permission; Expo's [`blockedPermissions` configuration](https://docs.expo.dev/guides/permissions/) removes the unused permissions inherited from dependencies. Verify backup share/import on the release APK after any native configuration change.
 
 ## Reminders
 
@@ -107,6 +113,14 @@ Validate native JavaScript/assets without launching a device:
 yarn expo export --platform android --platform ios --output-dir dist-native --max-workers 2
 ```
 
-The GitHub Actions workflow runs these checks against a production web export on pushes and pull requests.
+The GitHub Actions workflow runs these checks against a production web export on pushes and pull requests, checks Expo dependency compatibility, and validates Android/iOS JavaScript and assets after the tests pass.
 
 These checks do not produce a signed app or prove native device behavior. Before distributing a release, verify fresh install, upgrade with existing data, process termination/relaunch during a save, backup share/import and encrypted restore, notification permission/delivery, keyboard/safe areas, Android back navigation, and Pashto RTL on physical Android/iOS devices. Confirm release identifiers `com.gmm.marketmanager`, signing credentials, store metadata and privacy declarations for the owner's distribution account. `eas.json` provides an internal Android APK preview profile and a production profile; no build or store publication is performed automatically.
+
+Create the Android acceptance-test APK with `npx eas-cli@latest build --platform android --profile preview`. Download the APK from the successful build's EAS page. Keep the same application ID and signing key when testing an upgrade, and back up the existing installation first. For a new distributed release, increase `expo.android.versionCode` above the last distributed build and keep `package.json` and `expo.version` aligned. A native export alone is not an installable APK.
+
+## Dependency audit follow-up
+
+Run `yarn npm audit --all --recursive` before each release. The October 18, 2026 audit reports tooling dependencies that still need upstream follow-up: `braces@3.0.3` through file watchers, `node-forge@1.4.0` through Expo CLI, `esbuild@0.18.20` through Drizzle Kit's legacy loader, `postcss-selector-parser@6.1.4` through Tailwind, and `uuid@7.0.3` through the native Xcode tooling. The legacy loader packages also carry deprecation notices. The financial database and backup encryption use different libraries.
+
+The high-severity [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and [node-forge advisory](https://github.com/advisories/GHSA-86w9-cpqp-85rv) currently list no patched versions. The [esbuild issue](https://github.com/advisories/GHSA-67mh-4wv8-2f99) concerns its development server, which GMM does not start. The [selector-parser advisory](https://github.com/advisories/GHSA-rj75-hqrm-r3gf) concerns parsing attacker-supplied selectors; GMM builds CSS from repository sources. Use trusted projects/migration files, keep development servers private, and review compatible upstream updates before release. These findings remain open; the audit is not clean. No incompatible transitive overrides have been forced into the Expo/NativeWind/Drizzle stack.

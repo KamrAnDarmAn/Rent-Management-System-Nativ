@@ -36,6 +36,77 @@ async function addShop(page: Page) {
   ).toBeVisible();
 }
 
+test("invalid persisted settings cannot replace preference actions or prevent setup", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "rent-manager-preferences-v1",
+      JSON.stringify({
+        version: 0,
+        state: {
+          language: { bad: true },
+          theme: null,
+          reminders: "yes",
+          reminderDay: -5,
+          rentViewCalendar: "broken",
+          setLanguage: "not a function",
+          setTheme: "not a function",
+        },
+      }),
+    ),
+  );
+  await setup(page);
+  await page.getByRole("tab", { name: "Settings", exact: true }).click();
+  await button(page, "Language").click();
+  await page
+    .getByRole("button")
+    .filter({ has: page.getByText("پښتو", { exact: true }) })
+    .click();
+  await button(page, "Save & Apply").click();
+  await expect(button(page, "خوندي او پلي کړئ")).toBeVisible();
+});
+
+test("a screen render failure can recover without deleting saved shops or payments", async ({
+  page,
+}) => {
+  await setup(page);
+  await addShop(page);
+  await button(page, "Collect Rent").click();
+  await field(page, "Payment Amount").fill("300");
+  await button(page, "Save Payment").click();
+  await expect(page.getByText("Payment saved.", { exact: true })).toBeVisible();
+  await button(page, "Back").click();
+  await page.evaluate(() => {
+    Reflect.set(globalThis, "__gmmOriginalFormatter", Intl.DateTimeFormat);
+    Intl.DateTimeFormat = new Proxy(Intl.DateTimeFormat, {
+      construct() {
+        throw new Error("Simulated screen rendering failure");
+      },
+    });
+  });
+  try {
+    await page.getByRole("tab", { name: "Settings", exact: true }).click();
+    await button(page, "Data Management").click();
+    await expect(
+      page.getByText("Unable to display this screen", { exact: true }),
+    ).toBeVisible();
+  } finally {
+    await page.evaluate(() => {
+      Intl.DateTimeFormat = Reflect.get(globalThis, "__gmmOriginalFormatter");
+    });
+  }
+  await button(page, "Try Again").click();
+  await expect(
+    page.getByText("GMM Production Market", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Shops", exact: true }).click();
+  await page.getByRole("button", { name: /Shop #01 My Store/ }).click();
+  await expect(
+    page.getByText("Outstanding Rent", { exact: true }).first().locator(".."),
+  ).toContainText("AFN 700");
+});
+
 test("first setup is shown once; shops and arbitrary partial payments survive reload and work without a network", async ({
   page,
   context,

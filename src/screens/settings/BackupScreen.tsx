@@ -237,6 +237,7 @@ export function BackupScreen() {
               onPress={() =>
                 run(async () => {
                   setFile(null);
+                  setValidated(null);
                   setError("");
                   setConfirmed(false);
                   try {

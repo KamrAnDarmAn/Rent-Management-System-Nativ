@@ -38,6 +38,96 @@ const fixture = () => ({
   rentPayments: {},
   prepaidRent: undefined,
 });
+
+for (const table of [
+  "expenses",
+  "audit_log",
+  "closed_months",
+  "recovery_snapshots",
+]) {
+  test(`missing metadata never hides existing ${table} records or allows an empty save`, async () => {
+    const { repository, db } = await testRepository();
+    try {
+      const data = {
+        ...emptyLedger(),
+        propertyName: "Original",
+        setupComplete: true,
+        expenses: [
+          {
+            id: "e1",
+            amount: 100,
+            date: "2026-10-16",
+            description: "Repair",
+            category: "Repairs",
+            type: "Property Expense" as const,
+            method: "Cash" as const,
+          },
+        ],
+        audit: [
+          { id: "a1", date: "2026-10-16T10:00:00Z", action: "Add expense" },
+        ],
+        closedMonths: [
+          {
+            calendar: "gregorian" as const,
+            start: "2026-09-01",
+            end: "2026-10-01",
+            closedAt: "2026-10-16T10:00:00Z",
+          },
+        ],
+      };
+      await repository.save(data, "Initial save");
+      await repository.save(data, "Second save");
+      for (const other of [
+        "expenses",
+        "audit_log",
+        "closed_months",
+        "recovery_snapshots",
+        "metadata",
+      ])
+        if (other !== table) db.exec(`DELETE FROM ${other}`);
+      await expect(repository.initialize()).rejects.toThrow("needs recovery");
+      await expect(
+        repository.save(emptyLedger(), "Accidental reset"),
+      ).rejects.toThrow("needs recovery");
+      expect(
+        db.prepare(`SELECT count(*) AS count FROM ${table}`).get()?.count,
+      ).toBe(1);
+    } finally {
+      db.close();
+    }
+  });
+}
+
+test("startup rejects orphaned relational records without discarding them", async () => {
+  const { repository, db } = await testRepository();
+  try {
+    await repository.save(
+      { ...emptyLedger(), propertyName: "Market", setupComplete: true },
+      "Setup",
+    );
+    db.exec("PRAGMA foreign_keys=OFF");
+    db.prepare(
+      "INSERT INTO rent_receipts (id,shop_id,date,amount,payload) VALUES (?,?,?,?,?)",
+    ).run(
+      "orphan",
+      999,
+      "2026-10-16",
+      100,
+      JSON.stringify({
+        id: "orphan",
+        date: "2026-10-16",
+        amount: 100,
+        method: "Cash",
+      }),
+    );
+    await expect(repository.initialize()).rejects.toThrow("needs recovery");
+    expect(
+      db.prepare("SELECT count(*) AS count FROM rent_receipts").get()?.count,
+    ).toBe(1);
+  } finally {
+    db.close();
+  }
+});
 test("SQLite migrations are repeatable; a reopened file retains setup, receipts, expenses and archive history", async () => {
   const dir = mkdtempSync(path.join(tmpdir(), "gmm-")),
     file = path.join(dir, "gmm.db");

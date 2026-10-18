@@ -1,4 +1,7 @@
 export const production: Record<string, string> = {
+  "Unable to display this screen": "دا پاڼه نه شي ښودل کېدای",
+  "Try again to reopen your saved ledger. This does not delete or reset your data.":
+    "د خپل خوندي حساب د بېرته خلاصولو لپاره بیا هڅه وکړئ. په دې کار ستاسې معلومات نه ړنګېږي او نه بدلېږي.",
   "Rent charges follow recorded effective dates and rate changes.":
     "کرایه د ثبت شوو ورځو او د کرایې د بدلونونو له مخې حسابېږي.",
   "Ended and archived tenancies retain their historical rent.":

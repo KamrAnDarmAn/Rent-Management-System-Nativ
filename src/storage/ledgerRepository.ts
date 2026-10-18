@@ -69,6 +69,13 @@ export class LedgerRepository implements LedgerPersistence {
       }
       await this.db.execAsync("PRAGMA user_version=2");
     });
+    const references = await this.db.query(
+      "PRAGMA foreign_key_check",
+      [],
+      "all",
+    );
+    if (references.rows.length)
+      throw new Error("The database needs recovery. Restore a GMM backup.");
     return this.read();
   }
 
@@ -95,13 +102,22 @@ export class LedgerRepository implements LedgerPersistence {
   private async readRows(): Promise<LedgerData> {
     const metadata = await this.orm.select().from(schema.metadata).all();
     if (!metadata.length) {
-      const existing = await this.orm
-        .select({ id: schema.shops.id })
-        .from(schema.shops)
-        .limit(1)
-        .all();
-      if (existing.length)
-        throw new Error("The database needs recovery. Restore a GMM backup.");
+      // Missing metadata is safe only for a genuinely new database. Returning an
+      // empty ledger for a damaged one would let the next save erase its records.
+      for (const table of [
+        schema.shops,
+        schema.rentReceipts,
+        schema.rentSettlements,
+        schema.expenses,
+        schema.goods,
+        schema.auditLog,
+        schema.closedMonths,
+        schema.recoverySnapshots,
+      ]) {
+        const existing = await this.orm.select().from(table).limit(1).all();
+        if (existing.length)
+          throw new Error("The database needs recovery. Restore a GMM backup.");
+      }
       return emptyLedger();
     }
     const meta = Object.fromEntries(metadata.map((m) => [m.key, m.value]));

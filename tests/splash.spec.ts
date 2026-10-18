@@ -51,7 +51,9 @@ for (const language of ["en", "ps"] as const) {
       await page.waitForLoadState("networkidle");
       const t = (key: string) => translateText(key, language);
       const screen = page.getByTestId("splash-screen");
-      const heading = screen.getByText(t("Shop Rent Manager"), { exact: true });
+      const heading = screen.getByText(t("G. Mohammad Market"), {
+        exact: true,
+      });
       const subtitle = screen.getByText(
         t("Simple. Organized. Always in Control."),
         { exact: true },
