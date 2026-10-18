@@ -89,7 +89,7 @@ export function SplashScreen({
               lineHeight: (language === "ps" ? 42 : 40) * scale,
             }}
           >
-            Shop Rent Manager
+            G. Mohammad Market
           </T>
         </View>
         <View style={styles.subtitle}>

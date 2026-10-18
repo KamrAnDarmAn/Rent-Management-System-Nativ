@@ -31,27 +31,44 @@ export function RentTransactionList({
     .reverse();
   if (!transactions.length)
     return (
-      <T size={11} color={c.sub}>
+      <T
+        size={language === "ps" ? 16 : 14}
+        color={c.text}
+        style={{ opacity: 0.72 }}
+      >
         No transactions recorded for this shop yet.
       </T>
     );
   return (
-    <>
+    <View style={{ gap: 12 }}>
       {transactions.map((entry) => {
         const receipt = shop.rentReceipts?.find(
           (item) => item.id === entry.receiptId,
         );
+        const allocations = entry.receiptId
+          ? (account.allocations[entry.receiptId] ?? [])
+          : [];
+        const advance = entry.receiptId
+          ? (account.advanceByReceipt[entry.receiptId] ?? 0)
+          : 0;
         return (
-          <Row
+          <View
             key={entry.id}
             style={{
-              paddingVertical: 9,
-              borderBottomWidth: 1,
+              padding: 14,
+              borderRadius: 12,
+              backgroundColor: c.muted,
+              borderWidth: 1,
               borderColor: c.border,
+              gap: 8,
             }}
           >
-            <View style={{ flex: 1, gap: 3 }}>
-              <T size={12} weight="semibold">
+            <Row gap={12} style={{ alignItems: "flex-start" }}>
+              <T
+                size={language === "ps" ? 17 : 15}
+                weight="semibold"
+                style={{ flex: 1 }}
+              >
                 {receipt?.reversedAt
                   ? "Reversed Payment"
                   : entry.source === "goods"
@@ -60,23 +77,49 @@ export function RentTransactionList({
                       ? "Credit Applied"
                       : "Rent Payment"}
               </T>
-              <T size={10} color={c.sub}>
-                {formatRentDate(entry.date, entry.calendar, language)}
+              <T
+                size={language === "ps" ? 18 : 16}
+                weight="bold"
+                color={receipt?.reversedAt ? c.sub : c.primary}
+                style={{ flexShrink: 1, maxWidth: "48%" }}
+              >
+                {money(entry.amount)}
               </T>
-              {entry.receiptId ? (
-                <>
-                  <T size={10} color={c.sub}>
-                    {receipt?.method ?? "Cash"}
+            </Row>
+            <T
+              size={language === "ps" ? 15 : 13}
+              color={c.text}
+              style={{ opacity: 0.72 }}
+            >
+              {formatRentDate(entry.date, entry.calendar, language)}
+            </T>
+            {entry.receiptId ? (
+              <>
+                <T
+                  size={language === "ps" ? 15 : 13}
+                  color={c.text}
+                  style={{ opacity: 0.72 }}
+                >
+                  {receipt?.method ?? "Cash"}
+                </T>
+                {!!receipt?.reversedAt && !!receipt.reversalReason && (
+                  <T size={language === "ps" ? 16 : 14}>
+                    {receipt.reversalReason}
                   </T>
-                  {!!receipt?.reversedAt && !!receipt.reversalReason && (
-                    <T size={10} color={c.sub}>
-                      {receipt.reversalReason}
-                    </T>
-                  )}
-                  {(account.allocations[entry.receiptId] ?? []).map(
-                    (allocation, index) => (
+                )}
+                {(allocations.length > 0 || advance > 0) && (
+                  <View
+                    style={{
+                      padding: 10,
+                      borderRadius: 10,
+                      backgroundColor: c.surface,
+                      gap: 5,
+                    }}
+                  >
+                    {allocations.map((allocation, allocationIndex) => (
                       <SummaryLine
-                        key={`${allocation.period}-${index}`}
+                        key={allocation.period + ":" + allocationIndex}
+                        size={language === "ps" ? 15 : 13}
                         label={formatRentDate(
                           allocation.period,
                           shop.rentCalendar,
@@ -84,38 +127,34 @@ export function RentTransactionList({
                         )}
                         value={money(allocation.amount)}
                       />
-                    ),
-                  )}
-                  {!!account.advanceByReceipt[entry.receiptId] && (
-                    <SummaryLine
-                      label="Rent Advance Available"
-                      value={money(account.advanceByReceipt[entry.receiptId])}
-                    />
-                  )}
-                </>
-              ) : (
-                <T size={10} color={c.sub}>
-                  {t("For rental period: {{date}}", {
-                    date: formatRentDate(
-                      entry.period,
-                      entry.calendar,
-                      language,
-                    ),
-                  })}
-                </T>
-              )}
-              {!!entry.note && <T size={10}>{entry.note}</T>}
-            </View>
-            <T
-              size={12}
-              weight="semibold"
-              color={receipt?.reversedAt ? c.sub : c.primary}
-            >
-              {money(entry.amount)}
-            </T>
-          </Row>
+                    ))}
+                    {advance > 0 && (
+                      <SummaryLine
+                        size={language === "ps" ? 15 : 13}
+                        label="Rent Advance Available"
+                        value={money(advance)}
+                      />
+                    )}
+                  </View>
+                )}
+              </>
+            ) : (
+              <T
+                size={language === "ps" ? 15 : 13}
+                color={c.text}
+                style={{ opacity: 0.72 }}
+              >
+                {t("For rental period: {{date}}", {
+                  date: formatRentDate(entry.period, entry.calendar, language),
+                })}
+              </T>
+            )}
+            {!!entry.note && (
+              <T size={language === "ps" ? 16 : 14}>{entry.note}</T>
+            )}
+          </View>
         );
       })}
-    </>
+    </View>
   );
 }

@@ -11,10 +11,12 @@ import { addCalendarMonths, calendarMonthStart } from "../../../utils/calendar";
 export function ShopBalanceCards({
   shop,
   due,
+  advance,
   today,
 }: {
   shop: Shop;
   due: number;
+  advance: number;
   today: string;
 }) {
   const go = useGo();
@@ -85,6 +87,20 @@ export function ShopBalanceCards({
             tone="orange"
             icon="Package"
             detail="View goods history"
+          />
+        </Pressable>
+      </Row>
+      <Row gap={6} style={{ alignItems: "stretch" }}>
+        <Pressable
+          onPress={() => go("rent-history", shop.id)}
+          style={{ flex: 1 }}
+        >
+          <Metric
+            label="Rent Advance Available"
+            value={money(advance)}
+            tone="blue"
+            icon="Wallet"
+            detail="View rent history"
           />
         </Pressable>
       </Row>
