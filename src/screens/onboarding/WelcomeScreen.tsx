@@ -1,5 +1,4 @@
-import { useText } from "../../hooks/useText";
-import { ActivityIndicator, Image, Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { Logo } from "../../components/branding/Logo";
 import { Button } from "../../components/buttons/Button";
 import { Icon, type IconName } from "../../components/icons/Icon";
@@ -12,58 +11,10 @@ import { T } from "../../components/typography/T";
 import { useGo } from "../../hooks/useGo";
 import { usePreferences } from "../../store/preferencesStore";
 
-export function WelcomeScreen({ splash = false }: { splash?: boolean }) {
-  const t = useText();
+export function WelcomeScreen() {
   const { c } = useUI();
   const go = useGo();
   const setLanguage = usePreferences((s) => s.setLanguage);
-  if (splash)
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: c.bg,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: 35,
-          gap: 10,
-        }}
-      >
-        <View style={{ flex: 1 }} />
-        <Logo size={110} />
-        <T size={27} weight="bold" style={{ letterSpacing: -1 }}>
-          GMM
-        </T>
-        <T size={14} color={c.sub}>
-          Simple. Organized. Always in Control.
-        </T>
-        <Image
-          source={require("../../../assets/reference/shop-illustration.png")}
-          resizeMode="contain"
-          style={{ width: "100%", height: 235, marginTop: 15 }}
-        />
-        <Pressable
-          accessibilityLabel={t("Continue from splash")}
-          onPress={() => go("get-started")}
-          style={{ alignItems: "center", gap: 10, marginTop: 20 }}
-        >
-          <ActivityIndicator size="large" color={c.primary} />
-          <T size={13} color={c.sub}>
-            Loading…
-          </T>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Button
-          title="Continue"
-          onPress={() => go("get-started")}
-          variant="ghost"
-          compact
-        />
-        <T size={10} color={c.sub} style={{ paddingBottom: 25 }}>
-          Manage Shops · Grow Peacefully
-        </T>
-      </View>
-    );
   return (
     <Page
       back={false}

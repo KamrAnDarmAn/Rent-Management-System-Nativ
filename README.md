@@ -13,6 +13,8 @@ yarn start
 
 For native runtime testing, use an Android/iOS development environment with this SDK, or an EAS preview build. First launch opens language/property setup, with an option to restore a backup. No sample shops or payments are created. Returning launches open the saved ledger.
 
+Startup uses the splash design in `design/splash-screen.png`, with the supplied transparent artwork at `assets/images/spalsh-screen-background.png`. The branded screen waits for its images and fonts, then opens setup or the saved ledger once SQLite is ready. English/Pashto and reduced-motion preferences are supported. Preview the composition on the web at `/?screen=splash`. Native launch configuration changes require a new APK; Android's system-controlled launch icon appears before the full illustrated screen.
+
 For the browser verification build:
 
 ```sh

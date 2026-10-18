@@ -1,4 +1,5 @@
 export const onboarding: Record<string, string> = {
+  "Loading...": "لږ تم شئ...",
   "Shop Rent Manager": "د دوکان د کرایې مدیر",
   "Built for Landlords": "د دوکانونو د مالکانو لپاره",
   "Simple. Organized. Always in Control.":

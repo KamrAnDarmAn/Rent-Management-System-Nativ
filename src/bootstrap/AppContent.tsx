@@ -2,14 +2,15 @@ import { StorageRecovery } from "./StorageRecovery";
 import { ReminderScheduler } from "./ReminderScheduler";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Platform, View } from "react-native";
+import * as NativeSplash from "expo-splash-screen";
 import { T } from "../components/typography/T";
-import { Button } from "../components/buttons/Button";
 import { openLedger } from "../storage/database";
 import { useLedger } from "../store/ledgerStore";
 import { usePreferences } from "../store/preferencesStore";
 import { Logo } from "../components/branding/Logo";
+import { SplashScreen } from "../components/branding/SplashScreen";
 import { Toast } from "../components/feedback/Toast";
 import { navigationTheme } from "../components/theme/navigationTheme";
 import { dark } from "../components/theme/palette";
@@ -25,8 +26,19 @@ export function AppContent() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [splashReady, setSplashReady] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+  const fontsReady = loaded || !!fontError;
+  const handleSplashReady = useCallback(() => setSplashReady(true), []);
   const setupComplete = useLedger((s) => s.setupComplete);
   const { c, rtl } = useUI();
+  useEffect(() => {
+    if (!fontsReady || !splashReady) return;
+    if (Platform.OS !== "web") void NativeSplash.hideAsync().catch(() => {});
+    // A brief, consistent introduction; slower storage continues under the spinner.
+    const timeout = setTimeout(() => setIntroDone(true), 800);
+    return () => clearTimeout(timeout);
+  }, [fontsReady, splashReady]);
   useEffect(() => {
     let active = true;
     (async () => {
@@ -47,10 +59,19 @@ export function AppContent() {
       active = false;
     };
   }, [attempt]);
+  const showingSplash =
+    initial === "splash" || !fontsReady || !introDone || (!ready && !error);
   return (
     <AppShell>
-      <StatusBar style={c === dark ? "light" : "dark"} />
-      {(!loaded && !fontError) || !ready ? (
+      <StatusBar
+        style={showingSplash ? "dark" : c === dark ? "light" : "dark"}
+      />
+      {showingSplash ? (
+        <SplashScreen
+          animate={initial !== "splash"}
+          onReady={handleSplashReady}
+        />
+      ) : error ? (
         <View
           style={{
             flex: 1,
@@ -63,21 +84,17 @@ export function AppContent() {
           <T size={24} weight="bold">
             GMM
           </T>
-          {error ? (
-            <StorageRecovery
-              retry={() => {
-                setError(false);
-                setAttempt((n) => n + 1);
-              }}
-              onRestored={(data) => {
-                useLedger.getState().hydrate(data);
-                setReady(true);
-                setError(false);
-              }}
-            />
-          ) : (
-            <ActivityIndicator color={c.primary} />
-          )}
+          <StorageRecovery
+            retry={() => {
+              setError(false);
+              setAttempt((n) => n + 1);
+            }}
+            onRestored={(data) => {
+              useLedger.getState().hydrate(data);
+              setReady(true);
+              setError(false);
+            }}
+          />
         </View>
       ) : (
         <NavigationContainer
