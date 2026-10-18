@@ -1,9 +1,15 @@
 {
+  "cli": {
+    "appVersionSource": "local"
+  },
   "build": {
     "preview": {
+      "corepack": true,
       "distribution": "internal",
       "android": { "buildType": "apk" }
     },
-    "production": {}
+    "production": {
+      "corepack": true
+    }
   }
 }
