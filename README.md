@@ -43,6 +43,8 @@ To change the schema:
 
 The initial native database is `gmm-ledger.db` in Expo SQLite's application database directory. SQLite enables foreign keys, WAL, full synchronous durability, and an integrity check at startup. Mutations are serialized and balances are derived after earlier writes commit. Zustand publishes changes and forms show success only after a successful transaction. A failed write rolls back; saved state is retained. Financial records do not use AsyncStorage. AsyncStorage holds nonsecret preferences only.
 
+Finishing a receipt, credit, expense or goods save dismisses its own completed form. If another screen was opened during the transaction, that screen and its draft stay in place; the completed form is removed from the back stack.
+
 Startup also checks foreign-key integrity. Missing metadata is accepted only when every ledger and recovery table is empty; existing expenses, history or recovery copies trigger recovery instead of showing first-time setup or allowing an empty ledger to overwrite them.
 
 ## Accounting behavior
@@ -77,6 +79,8 @@ Android builds block overlay and broad external-storage permissions. Backups use
 
 Optional local notifications require device permission. Scheduling uses 9 AM Afghanistan time and the chosen lead time, skips rent covered by advance, and refreshes when the app opens/resumes or records change. The next 50 reminders are scheduled to stay within platform limits. Keep opening GMM regularly. OS settings, power management and notification permissions can delay/prevent delivery; reminders never change balances. Test reminders on a physical device with the app in the background.
 
+Notification modules load only when needed. A runtime without the required native modules can still open and use the ledger; enabling reminders explains that a current native GMM build is required. Archived, deleted, vacant and ended tenancies do not receive future reminders.
+
 ## Structure
 
 - `src/components/`: reusable forms, menus, charts, layouts, branding and theme.
@@ -89,6 +93,8 @@ Optional local notifications require device permission. Scheduling uses 9 AM Afg
 - `tests/`: financial/storage tests and browser interaction tests. Samples are imported through an explicit test-only backup fixture; production stays empty.
 
 ## Verification
+
+`yarn check` runs the following static checks and is also enforced after dependency installation in EAS builds:
 
 ```sh
 yarn typecheck
@@ -107,6 +113,10 @@ PREVIEW_URL=http://127.0.0.1:8090 yarn test
 
 Browser tests use `/usr/bin/google-chrome`; set `CHROME_PATH` for another installed Chromium executable. Tests cover onboarding, reload/offline persistence, partial/advance payments, Shamsi proration, report reconciliation, transactional rollback, backups, reversals, month locks, language/RTL, dropdown positioning and shop management. Node's SQLite test API is experimental; this does not affect the native database driver.
 
+Financial browser workflows also exercise goods payables with cash/rent-offset settlement, closing/reopening a month before reversing a receipt, and rate changes followed by departure, archive and restore. Reminder tests cover scheduling dates, prepaid coverage, the earliest 50 jobs, missing modules, permission denial, iOS provisional permission, and serialized scheduling/cancellation using native API doubles. These doubles do not verify OS delivery.
+
+Regression checks include dashboard/yearly totals above the safe-integer aggregate range and navigating to an edit draft while a real SQLite commit is held pending.
+
 Validate native JavaScript/assets without launching a device:
 
 ```sh
@@ -121,6 +131,6 @@ Create the Android acceptance-test APK with `npx eas-cli@latest build --platform
 
 ## Dependency audit follow-up
 
-Run `yarn npm audit --all --recursive` before each release. The October 18, 2026 audit reports tooling dependencies that still need upstream follow-up: `braces@3.0.3` through file watchers, `node-forge@1.4.0` through Expo CLI, `esbuild@0.18.20` through Drizzle Kit's legacy loader, `postcss-selector-parser@6.1.4` through Tailwind, and `uuid@7.0.3` through the native Xcode tooling. The legacy loader packages also carry deprecation notices. The financial database and backup encryption use different libraries.
+Run `yarn npm audit --all --recursive` before each release. The October 19, 2026 audit reports tooling dependencies that still need upstream follow-up: `braces@3.0.3` through file watchers, `node-forge@1.4.0` through Expo CLI, `esbuild@0.18.20` through Drizzle Kit's legacy loader, `postcss-selector-parser@6.1.4` through Tailwind, and `uuid@7.0.3` through the native Xcode tooling. The legacy loader packages also carry deprecation notices. The financial database and backup encryption use different libraries.
 
 The high-severity [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and [node-forge advisory](https://github.com/advisories/GHSA-86w9-cpqp-85rv) currently list no patched versions. The [esbuild issue](https://github.com/advisories/GHSA-67mh-4wv8-2f99) concerns its development server, which GMM does not start. The [selector-parser advisory](https://github.com/advisories/GHSA-rj75-hqrm-r3gf) concerns parsing attacker-supplied selectors; GMM builds CSS from repository sources. Use trusted projects/migration files, keep development servers private, and review compatible upstream updates before release. These findings remain open; the audit is not clean. No incompatible transitive overrides have been forced into the Expo/NativeWind/Drizzle stack.

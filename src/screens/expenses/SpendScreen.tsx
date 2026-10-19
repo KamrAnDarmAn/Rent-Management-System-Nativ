@@ -56,6 +56,7 @@ export function SpendScreen() {
       />
       <Row>
         <Metric
+          style={{ flex: 1 }}
           label="Total Expenses"
           value={money(
             sum(expenses.filter((e) => e.category !== "Goods Settlement")),
@@ -64,6 +65,7 @@ export function SpendScreen() {
           icon="Receipt"
         />
         <Metric
+          style={{ flex: 1 }}
           label="Paid Expenses"
           value={money(paid)}
           tone="red"
@@ -72,6 +74,7 @@ export function SpendScreen() {
       </Row>
       <Row>
         <Metric
+          style={{ flex: 1 }}
           label="Property Expenses"
           value={money(
             sum(expenses.filter((e) => e.type === "Property Expense")),
@@ -79,6 +82,7 @@ export function SpendScreen() {
           tone="blue"
         />
         <Metric
+          style={{ flex: 1 }}
           label="Unsettled Goods Payables"
           value={money(owed)}
           tone="orange"

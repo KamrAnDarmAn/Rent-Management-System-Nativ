@@ -61,12 +61,14 @@ export function ShopsScreen() {
       >
         <Row gap={8}>
           <Metric
+            style={{ flex: 1 }}
             label="Total Shops"
             value={String(shops.length)}
             icon="Store"
             tone="teal"
           />
           <Metric
+            style={{ flex: 1 }}
             label="Occupied Shops"
             value={String(occupied)}
             icon="Store"
@@ -74,6 +76,7 @@ export function ShopsScreen() {
             detail={`${occupiedPercent}% Occupied`}
           />
           <Metric
+            style={{ flex: 1 }}
             label="Vacant Shops"
             value={String(vacant)}
             icon="Store"

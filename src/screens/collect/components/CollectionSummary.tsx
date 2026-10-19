@@ -12,12 +12,14 @@ export function CollectionSummary({
   settled,
   remaining,
 }: {
-  expected: number;
-  settled: number;
-  remaining: number;
+  expected: bigint;
+  settled: bigint;
+  remaining: bigint;
 }) {
   const { c } = useUI();
-  const percent = expected ? Math.round((settled / expected) * 100) : 0;
+  const percent = expected
+    ? Number((settled * 100n + expected / 2n) / expected)
+    : 0;
   return (
     <Card tone="teal" style={{ padding: 12, gap: 5, borderColor: c.border }}>
       <Row

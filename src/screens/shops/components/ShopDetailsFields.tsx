@@ -17,6 +17,7 @@ export function ShopDetailsFields({
     >
       <Row style={{ alignItems: "flex-start" }}>
         <Field
+          style={{ flex: 1 }}
           label="Shop Number"
           {...field("number")}
           placeholder="e.g. Shop 07"
@@ -25,6 +26,7 @@ export function ShopDetailsFields({
           helper="Unique identifier for this shop"
         />
         <Field
+          style={{ flex: 1 }}
           label="Shop Name"
           {...field("name")}
           placeholder="e.g. Ahmad Electronics"
@@ -35,6 +37,7 @@ export function ShopDetailsFields({
       </Row>
       <Row style={{ alignItems: "flex-start" }}>
         <Field
+          style={{ flex: 1 }}
           label="Shopkeeper Name"
           {...field("keeper")}
           placeholder="e.g. Ahmad Khan"
@@ -43,6 +46,7 @@ export function ShopDetailsFields({
           helper="Full name of the shopkeeper"
         />
         <Field
+          style={{ flex: 1 }}
           label="Phone Number"
           {...field("phone")}
           placeholder="070 1234567"

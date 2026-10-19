@@ -24,12 +24,12 @@ export function Metric({
   compact?: boolean;
 }) {
   const { c } = useUI();
+  // Keep a content-based height when used directly in a native ScrollView.
   return (
     <Card
       tone={tone}
       style={[
         {
-          flex: 1,
           gap: compact ? 3 : 5,
           padding: compact ? 7 : 10,
           minWidth: 0,

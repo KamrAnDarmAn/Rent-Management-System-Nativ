@@ -22,7 +22,7 @@ export function ShopManagementActions({
         variant="danger"
         onPress={onDelete}
       />
-      <Row gap={5}>
+      <Row gap={8} style={{ alignItems: "stretch" }}>
         <Button
           title="Edit Shop"
           icon="Pencil"
@@ -39,6 +39,8 @@ export function ShopManagementActions({
           style={{ flex: 1 }}
           compact
         />
+      </Row>
+      <Row gap={8} style={{ alignItems: "stretch" }}>
         <Button
           title="End Tenancy"
           icon="Pause"
@@ -54,6 +56,7 @@ export function ShopManagementActions({
           onPress={async () => {
             if (!(await useLedger.getState().archiveShop(shopId)))
               return notify(useLedger.getState().error!);
+            if (!navigation.isFocused()) return;
             navigation.reset({
               index: 0,
               routes: [

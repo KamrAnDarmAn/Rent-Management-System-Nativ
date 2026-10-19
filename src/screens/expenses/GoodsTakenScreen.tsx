@@ -1,4 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
+import { useDismissSavedForm } from "../../hooks/useDismissSavedForm";
 import { useRef, useState } from "react";
 import { Button } from "../../components/buttons/Button";
 import { Chips } from "../../components/filters/Chips";
@@ -22,7 +22,7 @@ import { validAmount } from "../../utils/validation";
 import type { GoodsEntry } from "../../types/ledger";
 export function GoodsTakenScreen({ shopId }: { shopId?: number }) {
   const { c, notify } = useUI(),
-    nav = useNavigation(),
+    dismissSavedForm = useDismissSavedForm(),
     go = useGo();
   const shops = useLedger((s) => s.shops);
   const [selected, setSelected] = useState(shopId);
@@ -83,7 +83,7 @@ export function GoodsTakenScreen({ shopId }: { shopId?: number }) {
               return notify(useLedger.getState().error!);
             saved.current = true;
             notify("Goods saved.");
-            if (nav.canGoBack()) nav.goBack();
+            dismissSavedForm();
           }}
         />
       }
@@ -100,18 +100,21 @@ export function GoodsTakenScreen({ shopId }: { shopId?: number }) {
       <Field label="Item Name" value={item} onChangeText={setItem} required />
       <Row>
         <Field
+          style={{ flex: 1 }}
           label="Quantity"
           value={quantity}
           onChangeText={setQuantity}
           numeric
         />
         <Select
+          style={{ flex: 1 }}
           label="Unit"
           value={unit}
           options={["Pcs.", "Kg", "Litre", "Box"]}
           onChange={setUnit}
         />
         <Field
+          style={{ flex: 1 }}
           label="Unit Price (AFN)"
           value={price}
           onChangeText={setPrice}

@@ -45,11 +45,13 @@ export function PrepaidSummary({
       <RentCalendarBadge calendar={calendar} />
       <Row gap={6}>
         <Metric
+          style={{ flex: 1 }}
           label="Advance Received"
           value={money(plan.amount)}
           tone="muted"
         />
         <Metric
+          style={{ flex: 1 }}
           label="Applied to Rent"
           value={money(summary.applied)}
           tone="teal"

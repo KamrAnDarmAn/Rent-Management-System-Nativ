@@ -44,19 +44,31 @@ export function MonthClosingScreen() {
       />
       <Row>
         <Metric
+          style={{ flex: 1 }}
           label="Total Cash Collected"
           value={money(report.received)}
           tone="green"
         />
-        <Metric label="Paid Expenses" value={money(report.spent)} tone="red" />
+        <Metric
+          style={{ flex: 1 }}
+          label="Paid Expenses"
+          value={money(report.spent)}
+          tone="red"
+        />
       </Row>
       <Row>
         <Metric
+          style={{ flex: 1 }}
           label="Outstanding Rent"
           value={money(report.outstanding)}
           tone="orange"
         />
-        <Metric label="Net Cash Flow" value={money(report.net)} tone="teal" />
+        <Metric
+          style={{ flex: 1 }}
+          label="Net Cash Flow"
+          value={money(report.net)}
+          tone="teal"
+        />
       </Row>
       <Info
         text="Closing prevents new receipts and expenses dated in that month. Later-dated payments can still settle older unpaid rent. Reopen the month to correct a dated record."

@@ -1,4 +1,5 @@
 import { useText } from "../../hooks/useText";
+import appConfig from "../../../app.json";
 import type { Ref } from "react";
 import { Pressable, View } from "react-native";
 import { Button } from "../../components/buttons/Button";
@@ -172,8 +173,13 @@ export function SettingsScreen() {
           "Offline rent and expense management",
           "Info",
           "blue",
-          () => notify("GMM v1.0.0 · Your ledger is saved offline in SQLite."),
-          "v1.0.0",
+          () =>
+            notify(
+              t("GMM v{{version}} · Your ledger is saved offline in SQLite.", {
+                version: appConfig.expo.version,
+              }),
+            ),
+          t("Version {{version}}", { version: appConfig.expo.version }),
         )}
       </Card>
     </Page>

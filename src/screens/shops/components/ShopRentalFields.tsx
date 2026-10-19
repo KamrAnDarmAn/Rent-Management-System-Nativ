@@ -51,6 +51,7 @@ export function ShopRentalFields({
       )}
       <Row style={{ alignItems: "flex-start" }}>
         <Field
+          style={{ flex: 1 }}
           label="Monthly Rent (AFN)"
           {...field("rent")}
           placeholder="e.g. 12,000"
@@ -60,6 +61,7 @@ export function ShopRentalFields({
           helper="Amount charged per month"
         />
         <CalendarDateField
+          style={{ flex: 1 }}
           label="Start Date"
           {...field("date")}
           calendar={calendar}

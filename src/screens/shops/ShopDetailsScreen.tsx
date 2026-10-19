@@ -29,11 +29,13 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
   const deleteShop = useLedger((state) => state.deleteShop);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const today = useToday();
-  const returnToShops = () =>
+  const returnToShops = () => {
+    if (!navigation.isFocused()) return;
     navigation.reset({
       index: 0,
       routes: [{ name: "Tabs", params: { screen: "shops" } }],
     });
+  };
   if (!shop)
     return (
       <Page title="Shop Details">

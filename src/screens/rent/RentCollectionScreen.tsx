@@ -1,4 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
+import { useDismissSavedForm } from "../../hooks/useDismissSavedForm";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Button } from "../../components/buttons/Button";
@@ -67,7 +67,7 @@ export function RentCollectionScreen({
     [preview, today],
   );
   const collect = useLedger((s) => s.collectRent);
-  const nav = useNavigation();
+  const dismissSavedForm = useDismissSavedForm();
   const go = useGo();
   const save = async () => {
     setAttempted(true);
@@ -81,7 +81,7 @@ export function RentCollectionScreen({
     }
     setSubmitted(true);
     notify("Payment saved.");
-    if (nav.canGoBack()) nav.goBack();
+    dismissSavedForm();
   };
   const another = () => {
     id.current = receiptId();
@@ -116,11 +116,13 @@ export function RentCollectionScreen({
         </T>
         <Row>
           <Metric
+            style={{ flex: 1 }}
             label="Previous Months Due"
             value={money(account.arrears)}
             tone="red"
           />
           <Metric
+            style={{ flex: 1 }}
             label="Current Month Remaining"
             value={money(account.currentPeriod?.due ?? 0)}
             tone="muted"

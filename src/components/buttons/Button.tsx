@@ -1,7 +1,7 @@
 import { useText } from "../../hooks/useText";
 import { useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleProp, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { type IconName, Icon } from "../icons/Icon";
 import { Row } from "../layout/Row";
 import { useUI } from "../theme/UIContext";
@@ -58,8 +58,10 @@ export function Button({
       </T>
     </Row>
   );
+  // NativeWind v4 treats callback styles as objects; pass them to native Pressable.
   return (
     <Pressable
+      cssInterop={false}
       accessibilityRole="button"
       accessibilityLabel={t(title)}
       disabled={disabled || busy}
@@ -70,48 +72,34 @@ export function Button({
       style={({ pressed }) => [
         {
           minHeight: compact ? 34 : 46,
+          justifyContent: "center",
+          paddingHorizontal: compact ? 10 : 14,
+          paddingVertical: 9,
           borderRadius: 9,
           overflow: "hidden",
+          backgroundColor:
+            variant === "danger"
+              ? c.red
+              : variant === "secondary"
+                ? c.teal
+                : "transparent",
+          borderWidth: variant === "outline" ? 1 : 0,
+          borderColor: c.border,
           opacity: disabled || busy ? 0.4 : pressed ? 0.8 : 1,
         },
         style,
       ]}
     >
-      {variant === "primary" ? (
+      {variant === "primary" && (
         <LinearGradient
+          pointerEvents="none"
           colors={["#04988f", "#036b6c"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            paddingHorizontal: compact ? 10 : 14,
-            paddingVertical: 9,
-          }}
-        >
-          {contents}
-        </LinearGradient>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            borderRadius: 9,
-            paddingHorizontal: compact ? 10 : 14,
-            paddingVertical: 9,
-            backgroundColor:
-              variant === "danger"
-                ? c.red
-                : variant === "secondary"
-                  ? c.teal
-                  : "transparent",
-            borderWidth: variant === "outline" ? 1 : 0,
-            borderColor: c.border,
-          }}
-        >
-          {contents}
-        </View>
+          style={StyleSheet.absoluteFill}
+        />
       )}
+      {contents}
     </Pressable>
   );
 }

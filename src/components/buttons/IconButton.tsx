@@ -18,6 +18,7 @@ export function IconButton({
   const { c } = useUI();
   return (
     <Pressable
+      cssInterop={false}
       onPress={onPress}
       accessibilityLabel={t(label)}
       accessibilityRole="button"

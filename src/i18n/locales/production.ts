@@ -1,4 +1,6 @@
 export const production: Record<string, string> = {
+  "Device reminders are unavailable in this build. Install a current GMM app build to enable notifications.":
+    "په دې نسخه کې د موبایل یادونې نشته. د خبرتیاوو د فعالولو لپاره د جي اېم اېم اوسنۍ نسخه نصب کړئ.",
   "Unable to display this screen": "دا پاڼه نه شي ښودل کېدای",
   "Try again to reopen your saved ledger. This does not delete or reset your data.":
     "د خپل خوندي حساب د بېرته خلاصولو لپاره بیا هڅه وکړئ. په دې کار ستاسې معلومات نه ړنګېږي او نه بدلېږي.",
@@ -110,8 +112,9 @@ export const production: Record<string, string> = {
     "د یادونو لپاره د موبایل په امستنو کې د خبرتیاوو اجازه ورکړئ.",
   "Days Before Rent Is Due": "له کرایې څو ورځې مخکې",
   "Overdue Rent": "له وخته تېره کرایه",
-  "GMM v1.0.0 · Your ledger is saved offline in SQLite.":
-    "جي اېم اېم ۱.۰.۰ · ستاسې حساب له انټرنېټ پرته په موبایل کې خوندي کېږي.",
+  "GMM v{{version}} · Your ledger is saved offline in SQLite.":
+    "جي اېم اېم {{version}} · ستاسې حساب له انټرنېټ پرته په موبایل کې خوندي کېږي.",
+  "Version {{version}}": "نسخه {{version}}",
   "Shop removed. Financial history is preserved in Archived Shops.":
     "دوکان له فعال لېست څخه وایستل شو. د پیسو مخینه یې په پخوانیو دوکانونو کې ساتل کېږي.",
   "Choose today or a future effective date. A tenancy end date must be between its start and today.":
