@@ -132,6 +132,7 @@ export function useShopForm(shopId?: number) {
       if (!(await update(shop.id, { ...values, status })))
         return notify(useLedger.getState().error!);
       notify("Shop updated.");
+      if (!navigation.isFocused()) return;
       if (navigation.canGoBack()) navigation.goBack();
       else go("shop-details", shop.id);
     } else {
@@ -145,6 +146,7 @@ export function useShopForm(shopId?: number) {
       });
       if (!saved) return notify(useLedger.getState().error!);
       notify("Shop saved.");
+      if (!navigation.isFocused()) return;
       go("shops");
     }
   };

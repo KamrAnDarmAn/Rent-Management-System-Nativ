@@ -50,7 +50,13 @@ export function Page({
         backgroundColor: c.bg,
         paddingTop: Platform.OS === "web" ? 8 : insets.top,
       }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : Platform.OS === "android"
+            ? "height"
+            : undefined
+      }
     >
       {title && (
         <Row

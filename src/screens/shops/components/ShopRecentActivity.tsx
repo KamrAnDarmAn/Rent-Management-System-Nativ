@@ -7,8 +7,9 @@ export function ShopRecentActivity({ shopId }: { shopId: number }) {
   const go = useGo(),
     shop = useShop(shopId);
   return (
-    <Card>
+    <Card style={{ padding: 16 }}>
       <Section
+        size="large"
         title="Recent Activity"
         action="View All"
         onPress={() => go("shop-financial-report", shopId)}

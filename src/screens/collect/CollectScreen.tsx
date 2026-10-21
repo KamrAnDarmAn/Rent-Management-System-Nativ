@@ -71,10 +71,10 @@ export function CollectScreen() {
     const status = shop.status === "Settled by Credit" ? "Paid" : shop.status;
     counts[status]++;
   });
-  const expected = shops.reduce((sum, shop) => sum + shop.charge, 0);
+  const expected = shops.reduce((sum, shop) => sum + BigInt(shop.charge), 0n);
   const settled = shops.reduce(
-    (sum, shop) => sum + Math.min(shop.paid, shop.charge),
-    0,
+    (sum, shop) => sum + BigInt(Math.min(shop.paid, shop.charge)),
+    0n,
   );
   const received = rentCollections(shops, monthStart, nextMonth, today).total;
   const filtered = shops.filter(
@@ -96,10 +96,11 @@ export function CollectScreen() {
       <CollectionSummary
         expected={expected}
         settled={settled}
-        remaining={Math.max(0, expected - settled)}
+        remaining={expected > settled ? expected - settled : 0n}
       />
       <Row gap={7} style={{ alignItems: "stretch" }}>
         <Metric
+          style={{ flex: 1 }}
           label="Payments Received (Selected Month)"
           value={money(received)}
           tone="green"
@@ -107,8 +108,11 @@ export function CollectScreen() {
           detail="Cash and other payments"
         />
         <Metric
+          style={{ flex: 1 }}
           label="Outstanding Rent"
-          value={money(shops.reduce((sum, shop) => sum + shop.totalDue, 0))}
+          value={money(
+            shops.reduce((sum, shop) => sum + BigInt(shop.totalDue), 0n),
+          )}
           tone="red"
           icon="FileWarning"
           detail="Includes older unpaid rent"
@@ -116,7 +120,9 @@ export function CollectScreen() {
       </Row>
       <SummaryLine
         label="Previous Months Due"
-        value={money(shops.reduce((sum, shop) => sum + shop.arrears, 0))}
+        value={money(
+          shops.reduce((sum, shop) => sum + BigInt(shop.arrears), 0n),
+        )}
       />
       <CollectionStatusGrid onSelect={setFilter} counts={counts} />
       <CalendarChoice

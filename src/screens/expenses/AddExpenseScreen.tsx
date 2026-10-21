@@ -1,12 +1,10 @@
-import { useNavigation } from "@react-navigation/native";
+import { useDismissSavedForm } from "../../hooks/useDismissSavedForm";
 import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Button } from "../../components/buttons/Button";
 import { Chips } from "../../components/filters/Chips";
-import { Field } from "../../components/forms/Field";
 import { CalendarDateField } from "../../components/forms/CalendarDateField";
-import { useToday } from "../../hooks/useToday";
-import { validDate } from "../../domain/rent";
+import { Field } from "../../components/forms/Field";
 import { Select } from "../../components/forms/Select";
 import { Icon, type IconName } from "../../components/icons/Icon";
 import { Card } from "../../components/layout/Card";
@@ -15,13 +13,15 @@ import { Row } from "../../components/layout/Row";
 import { Section } from "../../components/layout/Section";
 import { useUI } from "../../components/theme/UIContext";
 import { T } from "../../components/typography/T";
+import { validDate } from "../../domain/rent";
+import { useToday } from "../../hooks/useToday";
 import { useLedger } from "../../store/ledgerStore";
-import { validAmount } from "../../utils/validation";
 import { usePreferences } from "../../store/preferencesStore";
 import type { Expense } from "../../types/expense";
+import { validAmount } from "../../utils/validation";
 export function AddExpenseScreen() {
   const { c, notify, rtl } = useUI();
-  const nav = useNavigation();
+  const dismissSavedForm = useDismissSavedForm();
   const saving = useRef(false);
   const viewCalendar = usePreferences((s) => s.rentViewCalendar);
   const add = useLedger((s) => s.addExpense);
@@ -43,11 +43,11 @@ export function AddExpenseScreen() {
     label: string;
     icon: IconName;
   }[] = [
+    { label: "Supplies", icon: "ShoppingCart" },
+    { label: "Utilities", icon: "Zap" },
     { label: "Repairs", icon: "Wrench" },
     { label: "Maintenance", icon: "Settings2" },
-    { label: "Utilities", icon: "Zap" },
     { label: "Construction", icon: "Building2" },
-    { label: "Supplies", icon: "ShoppingCart" },
     { label: "Other", icon: "Ellipsis" },
   ];
   return (
@@ -84,7 +84,7 @@ export function AddExpenseScreen() {
               return notify(useLedger.getState().error!);
             }
             notify("Expense saved.");
-            nav.goBack();
+            dismissSavedForm();
           }}
         />
       }
@@ -111,12 +111,13 @@ export function AddExpenseScreen() {
               accessibilityState={{ selected: category === cat.label }}
               key={cat.label}
               onPress={() => setCategory(cat.label)}
-              style={{ width: "23%", flexGrow: 1 }}
+              style={{ width: "30%", flexGrow: 1 }}
             >
               <Card
                 tone={category === cat.label ? "teal" : "muted"}
                 style={{
                   paddingVertical: 11,
+                  paddingHorizontal: 6,
                   alignItems: "center",
                   gap: 5,
                   borderColor: category === cat.label ? c.primary : c.border,
@@ -127,7 +128,9 @@ export function AddExpenseScreen() {
                   size={22}
                   color={category === cat.label ? c.primary : c.sub}
                 />
-                <T size={9}>{cat.label}</T>
+                <T size={9} style={{ textAlign: "center" }}>
+                  {cat.label}
+                </T>
               </Card>
             </Pressable>
           ))}
@@ -149,8 +152,8 @@ export function AddExpenseScreen() {
       <T size={12} weight="semibold">
         Expense Type
       </T>
-      <Row>
-        {(["Property Expense", "Personal Expense"] as const).map((v, i) => (
+      <Row style={{ alignItems: "stretch" }}>
+        {(["Personal Expense", "Property Expense"] as const).map((v) => (
           <Card
             key={v}
             tone={type === v ? "teal" : "muted"}
@@ -158,13 +161,15 @@ export function AddExpenseScreen() {
             style={{ flex: 1, borderColor: type === v ? c.primary : c.border }}
           >
             <Row>
-              <Icon name={i ? "UserRound" : "House"} />
+              <Icon name={v === "Personal Expense" ? "UserRound" : "House"} />
               <View style={{ flex: 1 }}>
                 <T size={10} weight="semibold">
                   {v}
                 </T>
                 <T size={8} color={c.sub}>
-                  {i ? "Not related to shops" : "Related to shops/property"}
+                  {v === "Personal Expense"
+                    ? "Not related to shops"
+                    : "Related to shops/property"}
                 </T>
               </View>
             </Row>

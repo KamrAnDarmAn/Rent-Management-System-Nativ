@@ -11,10 +11,12 @@ import { addCalendarMonths, calendarMonthStart } from "../../../utils/calendar";
 export function ShopBalanceCards({
   shop,
   due,
+  advance,
   today,
 }: {
   shop: Shop;
   due: number;
+  advance: number;
   today: string;
 }) {
   const go = useGo();
@@ -42,6 +44,7 @@ export function ShopBalanceCards({
           style={{ flex: 1 }}
         >
           <Metric
+            style={{ flexGrow: 1 }}
             label="Payments Received (This Month)"
             value={money(received)}
             tone="green"
@@ -54,6 +57,7 @@ export function ShopBalanceCards({
           style={{ flex: 1 }}
         >
           <Metric
+            style={{ flexGrow: 1 }}
             label="Outstanding Rent"
             value={money(due)}
             tone="red"
@@ -68,6 +72,7 @@ export function ShopBalanceCards({
           style={{ flex: 1 }}
         >
           <Metric
+            style={{ flexGrow: 1 }}
             label="Available Credit"
             value={money(shop.credit)}
             tone="teal"
@@ -80,11 +85,27 @@ export function ShopBalanceCards({
           style={{ flex: 1 }}
         >
           <Metric
+            style={{ flexGrow: 1 }}
             label="Goods Payable"
             value={money(payable)}
             tone="orange"
             icon="Package"
             detail="View goods history"
+          />
+        </Pressable>
+      </Row>
+      <Row gap={6} style={{ alignItems: "stretch" }}>
+        <Pressable
+          onPress={() => go("rent-history", shop.id)}
+          style={{ flex: 1 }}
+        >
+          <Metric
+            style={{ flexGrow: 1 }}
+            label="Rent Advance Available"
+            value={money(advance)}
+            tone="blue"
+            icon="Wallet"
+            detail="View rent history"
           />
         </Pressable>
       </Row>

@@ -1,6 +1,6 @@
 import { useText } from "../../hooks/useText";
 import { useAnchoredMenu } from "../../hooks/useAnchoredMenu";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleProp, View, ViewStyle } from "react-native";
 import { Icon } from "../icons/Icon";
 import { DropdownMenu } from "../menus/DropdownMenu";
 import { Row } from "../layout/Row";
@@ -12,18 +12,20 @@ export function Select({
   value,
   options,
   onChange,
+  style,
 }: {
   label?: string;
   value: string;
   options: string[];
   onChange: (v: string) => void;
+  style?: StyleProp<ViewStyle>;
 }) {
   const t = useText();
   const { c } = useUI();
   const menu = useAnchoredMenu();
   const open = !!menu.anchor;
   return (
-    <View style={{ flex: 1, gap: 5 }}>
+    <View style={[{ gap: 5, minWidth: 0 }, style]}>
       {label && (
         <T size={11} weight="medium">
           {label}

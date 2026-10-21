@@ -19,6 +19,7 @@ jobs:
       - run: yarn check:architecture
       - run: yarn check:translations
       - run: yarn db:check
+      - run: yarn expo install --check
       - run: yarn format:check
       - run: yarn playwright install --with-deps chromium
       - run: yarn export:web --max-workers 2
@@ -39,3 +40,5 @@ jobs:
         with:
           name: test-results
           path: test-results/
+      - name: Validate Android and iOS JavaScript and assets
+        run: yarn expo export --platform android --platform ios --output-dir dist-native --max-workers 2

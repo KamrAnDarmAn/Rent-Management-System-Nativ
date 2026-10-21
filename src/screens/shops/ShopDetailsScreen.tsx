@@ -7,8 +7,6 @@ import { Card } from "../../components/layout/Card";
 import { Page } from "../../components/layout/Page";
 import { PrepaidSummary } from "../../components/shops/PrepaidSummary";
 import { useUI } from "../../components/theme/UIContext";
-import { SummaryLine } from "../../components/data-display/SummaryLine";
-import { money } from "../../utils/format";
 import { T } from "../../components/typography/T";
 import { rentalPeriod, rentPosition } from "../../domain/rent";
 import { useGo } from "../../hooks/useGo";
@@ -31,11 +29,13 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
   const deleteShop = useLedger((state) => state.deleteShop);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const today = useToday();
-  const returnToShops = () =>
+  const returnToShops = () => {
+    if (!navigation.isFocused()) return;
     navigation.reset({
       index: 0,
       routes: [{ name: "Tabs", params: { screen: "shops" } }],
     });
+  };
   if (!shop)
     return (
       <Page title="Shop Details">
@@ -91,13 +91,12 @@ export function ShopDetailsScreen({ shopId = 1 }: { shopId?: number }) {
           calendar={shop.rentCalendar}
         />
       )}
-      <ShopBalanceCards shop={shop} due={position.totalDue} today={today} />
-      <Card>
-        <SummaryLine
-          label="Rent Advance Available"
-          value={money(position.advanceBalance)}
-        />
-      </Card>
+      <ShopBalanceCards
+        shop={shop}
+        due={position.totalDue}
+        advance={position.advanceBalance}
+        today={today}
+      />
       <ShopDetailTabs shopId={shop.id} />
       <ShopOverview
         shop={shop}

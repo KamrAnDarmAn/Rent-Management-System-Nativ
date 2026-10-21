@@ -4,7 +4,6 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Field } from "../../../components/forms/Field";
 import { Card } from "../../../components/layout/Card";
-import { Row } from "../../../components/layout/Row";
 import { Section } from "../../../components/layout/Section";
 import { useUI } from "../../../components/theme/UIContext";
 import { T } from "../../../components/typography/T";
@@ -14,6 +13,7 @@ import { useLedger } from "../../../store/ledgerStore";
 import type { Shop } from "../../../types/shop";
 import { money } from "../../../utils/format";
 import { calendarLabel, formatRentDate } from "../../../utils/calendar";
+import { ShopDetailFields } from "./ShopDetailFields";
 
 export function ShopOverview({
   shop,
@@ -29,73 +29,43 @@ export function ShopOverview({
   const [notes, setNotes] = useState(shop.notes);
   const updateShop = useLedger((state) => state.updateShop);
   return (
-    <Row style={{ alignItems: "stretch" }} gap={7}>
-      <Card style={{ flex: 1, padding: 9 }}>
+    <View style={{ gap: 12 }}>
+      <Card style={{ padding: 16 }}>
         <Section
+          size="large"
           title="Shop Information"
           action="Edit"
           onPress={() => go("edit-shop", shop.id)}
         >
-          {[
-            ["Shop Number", t("Shop #{{number}}", { number: shop.number })],
-            ["Shop Name", shop.name],
-            ["Address", shop.address || "—"],
-            ["Status", rentalTag(shop)],
-            ["Rent Calendar", calendarLabel(shop.rentCalendar)],
-            [
-              "Rental Payment Type",
-              shop.rentalType === "prepaid" ? "Prepaid" : "Monthly",
-            ],
-            [
-              "Start Date",
-              formatRentDate(shop.startDate, shop.rentCalendar, language),
-            ],
-            ["Monthly Rent", money(monthlyRentAt(shop))],
-          ].map(([k, v]) => (
-            <View key={k} style={{ gap: 2 }}>
-              <T size={9} color={c.sub}>
-                {k}
-              </T>
-              <T size={10} weight="medium">
-                {v}
-              </T>
-            </View>
-          ))}
+          <ShopDetailFields
+            fields={[
+              ["Shop Number", t("Shop #{{number}}", { number: shop.number })],
+              ["Shop Name", shop.name],
+              ["Address", shop.address || "—"],
+              ["Status", rentalTag(shop)],
+              ["Rent Calendar", calendarLabel(shop.rentCalendar)],
+              [
+                "Rental Payment Type",
+                shop.rentalType === "prepaid" ? "Prepaid" : "Monthly",
+              ],
+              [
+                "Start Date",
+                formatRentDate(shop.startDate, shop.rentCalendar, language),
+              ],
+              ["Monthly Rent", money(monthlyRentAt(shop))],
+            ]}
+          />
         </Section>
       </Card>
-      <View style={{ flex: 1, gap: 8 }}>
-        <Card style={{ padding: 9 }}>
-          <Section
-            title="Notes"
-            action={editNotes ? "Done" : "Edit"}
-            onPress={async () => {
-              if (editNotes && !(await updateShop(shop.id, { notes })))
-                return notify(useLedger.getState().error!);
-              if (!editNotes) setNotes(shop.notes);
-              setEditNotes(!editNotes);
-            }}
-          >
-            {editNotes ? (
-              <Field
-                label="Notes"
-                value={notes}
-                onChangeText={setNotes}
-                multiline
-              />
-            ) : (
-              <T size={10} color={c.sub}>
-                {shop.notes || "—"}
-              </T>
-            )}
-          </Section>
-        </Card>
-        <Card style={{ padding: 9 }}>
-          <Section
-            title="Important Dates"
-            action="Edit"
-            onPress={() => go("edit-shop", shop.id)}
-          >
-            {[
+      <Card style={{ padding: 16 }}>
+        <Section
+          size="large"
+          title="Important Dates"
+          action="Edit"
+          onPress={() => go("edit-shop", shop.id)}
+        >
+          <ShopDetailFields
+            fields={[
               [
                 "Tenancy Start",
                 formatRentDate(shop.startDate, shop.rentCalendar, language),
@@ -114,17 +84,39 @@ export function ShopOverview({
                 "Contract Type",
                 shop.rentalType === "prepaid" ? "Prepaid" : "Monthly",
               ],
-            ].map(([k, v]) => (
-              <View key={k}>
-                <T size={9} color={c.sub}>
-                  {k}
-                </T>
-                <T size={10}>{v}</T>
-              </View>
-            ))}
-          </Section>
-        </Card>
-      </View>
-    </Row>
+            ]}
+          />
+        </Section>
+      </Card>
+      <Card style={{ padding: 16 }}>
+        <Section
+          size="large"
+          title="Notes"
+          action={editNotes ? "Done" : "Edit"}
+          onPress={async () => {
+            if (editNotes && !(await updateShop(shop.id, { notes })))
+              return notify(useLedger.getState().error!);
+            if (!editNotes) setNotes(shop.notes);
+            setEditNotes(!editNotes);
+          }}
+        >
+          {editNotes ? (
+            <Field
+              label="Notes"
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+            />
+          ) : (
+            <T
+              size={language === "ps" ? 17 : 15}
+              color={shop.notes ? c.text : c.sub}
+            >
+              {shop.notes || "—"}
+            </T>
+          )}
+        </Section>
+      </Card>
+    </View>
   );
 }

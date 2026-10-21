@@ -39,6 +39,7 @@ yarn-error.*
 test-results/
 playwright-report/
 artifacts/visual/
+artifacts/releases/
 dist-native/
 
 example

@@ -38,11 +38,13 @@ export function ReportFilters({
       />
       <Row style={{ alignItems: "flex-start" }}>
         <CalendarChoice
+          style={{ flex: 1 }}
           label="View Calendar"
           value={model.calendar}
           onChange={model.setCalendar}
         />
         <Select
+          style={{ flex: 1 }}
           label="Report Scope"
           value={model.selected ? label(model.selected) : "All Shops"}
           options={["All Shops", ...model.candidates.map(label)]}

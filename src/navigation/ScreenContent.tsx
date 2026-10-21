@@ -11,6 +11,7 @@ import { GoodsTakenScreen } from "../screens/expenses/GoodsTakenScreen";
 import { SpendScreen } from "../screens/expenses/SpendScreen";
 import { SetupPropertyScreen } from "../screens/onboarding/SetupPropertyScreen";
 import { WelcomeScreen } from "../screens/onboarding/WelcomeScreen";
+import { SplashScreen } from "../components/branding/SplashScreen";
 import { DesignSystemScreen } from "../screens/reference/DesignSystemScreen";
 import { EmptyStatesScreen } from "../screens/reference/EmptyStatesScreen";
 import { ErrorStatesScreen } from "../screens/reference/ErrorStatesScreen";
@@ -124,7 +125,7 @@ export function ScreenContent({
     case "device-transfer":
       return <DeviceTransferScreen />;
     case "splash":
-      return <WelcomeScreen splash />;
+      return <SplashScreen animate={false} />;
     case "get-started":
       return <WelcomeScreen />;
     case "empty-states":

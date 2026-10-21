@@ -14,6 +14,7 @@ import { usePreferences } from "../../store/preferencesStore";
 import { useLedger } from "../../store/ledgerStore";
 import { rentAccount } from "../../domain/rentAccount";
 import {
+  ReminderUnavailableError,
   requestReminderPermission,
   syncReminders,
 } from "../../services/reminders";
@@ -57,9 +58,11 @@ export function RemindersScreen() {
                   prefs.language,
                 );
                 prefs.setReminders(enabled);
-              } catch {
+              } catch (error) {
                 notify(
-                  "Reminders could not be scheduled. Open reminder settings and try again.",
+                  error instanceof ReminderUnavailableError
+                    ? error.message
+                    : "Reminders could not be scheduled. Open reminder settings and try again.",
                 );
               } finally {
                 setBusy(false);

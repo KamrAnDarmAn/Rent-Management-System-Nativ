@@ -35,10 +35,10 @@ export function CalendarRentHistoryScreen({
     (row) => calendarParts(row.date, calendar).year === Number(year),
   );
   const go = useGo();
-  const expected = rows.reduce((sum, row) => sum + row.charge, 0);
+  const expected = rows.reduce((sum, row) => sum + BigInt(row.charge), 0n);
   const settled = rows.reduce(
-    (sum, row) => sum + Math.min(row.paid, row.charge),
-    0,
+    (sum, row) => sum + BigInt(Math.min(row.paid, row.charge)),
+    0n,
   );
   return (
     <Page title={report ? "Shop Financial Report" : "Rent History"}>
@@ -59,12 +59,21 @@ export function CalendarRentHistoryScreen({
         onChange={setYear}
       />
       <Row>
-        <Metric label="Expected Rent" value={money(expected)} />
-        <Metric label="Settled Rent" value={money(settled)} tone="green" />
+        <Metric
+          style={{ flex: 1 }}
+          label="Expected Rent"
+          value={money(expected)}
+        />
+        <Metric
+          style={{ flex: 1 }}
+          label="Settled Rent"
+          value={money(settled)}
+          tone="green"
+        />
       </Row>
       <Metric
         label="Outstanding Rent"
-        value={money(Math.max(0, expected - settled))}
+        value={money(expected > settled ? expected - settled : 0n)}
         tone="red"
       />
       <Card>

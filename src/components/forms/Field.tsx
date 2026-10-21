@@ -1,6 +1,6 @@
 import { useText } from "../../hooks/useText";
 import { useState } from "react";
-import { TextInput, View } from "react-native";
+import { StyleProp, TextInput, View, ViewStyle } from "react-native";
 import { type IconName, Icon } from "../icons/Icon";
 import { IconTile } from "../icons/IconTile";
 import { Row } from "../layout/Row";
@@ -21,6 +21,7 @@ export function Field({
   suffix,
   readOnly = false,
   secure = false,
+  style,
 }: {
   label: string;
   value?: string;
@@ -35,13 +36,15 @@ export function Field({
   suffix?: string;
   readOnly?: boolean;
   secure?: boolean;
+  style?: StyleProp<ViewStyle>;
 }) {
   const t = useText();
   const { c, rtl, language } = useUI();
   const [focused, setFocused] = useState(false);
   const dense = Boolean(helper) || !label;
+  // Row callers opt into flex sizing; standalone fields need their natural height.
   return (
-    <Row gap={7} style={{ flex: 1, minWidth: 0, alignItems: "flex-start" }}>
+    <Row gap={7} style={[{ minWidth: 0, alignItems: "flex-start" }, style]}>
       {dense && icon && <IconTile name={icon} size={28} />}
       <View style={{ flex: 1, gap: dense ? 4 : 5, minWidth: 0 }}>
         <Row gap={5}>

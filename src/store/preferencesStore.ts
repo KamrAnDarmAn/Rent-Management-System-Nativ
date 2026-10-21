@@ -2,14 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { RentCalendar } from "../types/shop";
+import {
+  normalizePreferences,
+  type PreferenceValues,
+} from "../domain/preferences";
 
-export type Preferences = {
-  language: "en" | "ps";
-  theme: "light" | "dark" | "system";
-  reminders: boolean;
-  lastBackupAt?: string;
-  reminderDay: number;
-  rentViewCalendar: RentCalendar;
+export type Preferences = PreferenceValues & {
   setRentViewCalendar: (calendar: RentCalendar) => void;
   setLanguage: (v: "en" | "ps") => void;
   setTheme: (v: "light" | "dark" | "system") => void;
@@ -20,11 +18,7 @@ export type Preferences = {
 export const usePreferences = create<Preferences>()(
   persist(
     (set) => ({
-      language: "en",
-      theme: "system",
-      reminders: false,
-      reminderDay: 5,
-      rentViewCalendar: "gregorian",
+      ...normalizePreferences(undefined),
       setRentViewCalendar: (rentViewCalendar) => set({ rentViewCalendar }),
       setLanguage: (language) => set({ language }),
       setTheme: (theme) => set({ theme }),
@@ -34,6 +28,12 @@ export const usePreferences = create<Preferences>()(
     {
       name: "rent-manager-preferences-v1",
       storage: createJSONStorage(() => AsyncStorage),
+      skipHydration: true,
+      partialize: (state) => normalizePreferences(state),
+      merge: (persisted, current) => ({
+        ...current,
+        ...normalizePreferences(persisted),
+      }),
     },
   ),
 );

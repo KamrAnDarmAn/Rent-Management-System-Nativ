@@ -1,5 +1,5 @@
 import { monthlyRentAt } from "../../domain/rentSchedule";
-import { useNavigation } from "@react-navigation/native";
+import { useDismissSavedForm } from "../../hooks/useDismissSavedForm";
 import { useState } from "react";
 import { Button } from "../../components/buttons/Button";
 import { Metric } from "../../components/data-display/Metric";
@@ -45,7 +45,7 @@ export function CollectCalendarRentScreen({
   const position = { ...base, due: row?.due ?? 0, paid: row?.paid ?? 0 };
   const current = rentalPeriod(shop.startDate, today, calendar);
   const apply = useLedger((s) => s.applyCredit);
-  const navigation = useNavigation();
+  const dismissSavedForm = useDismissSavedForm();
   const [amount, setAmount] = useState("");
   const [attempted, setAttempted] = useState(false);
   const save = async () => {
@@ -70,7 +70,7 @@ export function CollectCalendarRentScreen({
     if (!(await apply(shop.id, value, period)))
       return notify(useLedger.getState().error!);
     notify(credit ? "Credit applied." : "Payment saved.");
-    if (navigation.canGoBack()) navigation.goBack();
+    dismissSavedForm();
   };
   if (!credit) return <RentCollectionScreen key={shop.id} shop={shop} />;
   return (
@@ -110,11 +110,13 @@ export function CollectCalendarRentScreen({
         />
         <Row>
           <Metric
+            style={{ flex: 1 }}
             label="Monthly Rent"
             value={money(monthlyRentAt(shop))}
             tone="muted"
           />
           <Metric
+            style={{ flex: 1 }}
             label="Previously Settled"
             value={money(position.paid)}
             tone="green"

@@ -85,6 +85,7 @@ export function ReportMetrics({ report }: { report: RentReport }) {
         <Row key={offset} gap={8} style={{ alignItems: "stretch" }}>
           {metrics.slice(offset, offset + 2).map((metric) => (
             <Metric
+              style={{ flex: 1 }}
               key={metric.label}
               label={metric.label}
               value={money(metric.value)}

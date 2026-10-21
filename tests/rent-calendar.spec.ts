@@ -262,6 +262,7 @@ for (const language of ["en", "ps"]) {
     ).toBeVisible();
     await field("Payment Amount").fill("200");
     await button("Save Payment").click();
+    await expect(button("Collect Rent")).toBeVisible();
     await button("Edit Shop").click();
     await expect(field("Start Date")).toHaveValue("1405-07-25");
     await expect(button("Rent Calendar")).toContainText(t("Afghan Shamsi"));
@@ -273,6 +274,7 @@ for (const language of ["en", "ps"]) {
     await expect(remaining).toContainText("400");
     await button("Full").click();
     await button("Save Payment").click();
+    await expect(button("Collect Rent")).toBeVisible();
     await button("Back").click();
     await page.getByRole("tab", { name: t("Collect"), exact: true }).click();
     await chooseCalendar(page, "View Calendar", language);
